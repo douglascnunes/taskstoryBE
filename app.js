@@ -1,9 +1,9 @@
 const express = require('express');
 
-const sequelize = require('./util/db.js');
+const sequelize = require('./src/util/db.js');
 
 
-const overviewRoutes = require('./routes/overview.js')
+const overviewRoutes = require('./src/routes/overview.js')
 
 
 const app = express();

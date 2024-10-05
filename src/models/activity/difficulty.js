@@ -1,8 +1,9 @@
 const Sequelize = require('sequelize');
 
-const sequelize = require('../util/db');
+const sequelize = require('../../util/db.js');
 
-const Importance = sequelize.define('importance', {
+
+const Difficulty = sequelize.define('difficulty', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -19,4 +20,4 @@ const Importance = sequelize.define('importance', {
   }
 });
 
-module.exports = Importance;
+module.exports = Difficulty;

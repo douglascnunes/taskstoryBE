@@ -1,7 +1,7 @@
-const sequelize = require('../util/db');
+const sequelize = require('../util/db.js');
 
-const Activity = require('../models/activity');
-const Task = require('../models/task');
+const Activity = require('../models/activity/activity.js');
+const Task = require('../models/task/task.js');
 
 
 
