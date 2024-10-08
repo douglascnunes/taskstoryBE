@@ -40,24 +40,20 @@ const Task = sequelize.define('task', {
 });
 
 
-// Definindo a relação de herança (1-para-1) entre Task e Activity
-Activity.hasOne(Task, { foreignKey: 'activityId', onDelete: 'CASCADE'});
-Task.belongsTo(Activity, { foreignKey: 'activityId', allowNull: false});
+Activity.hasOne(Task, {onDelete: 'CASCADE'});
+Task.belongsTo(Activity, {allowNull: false});
 
-// Uma Task tem vários Step e  Um Step pertence a uma única Task
-Task.hasMany(Step, {foreignKey: 'taskId', onDelete: 'CASCADE'});
-Step.belongsTo(Task, {foreignKey: 'taskId', allowNull: false});
+Task.hasMany(Step, {onDelete: 'CASCADE'});
+Step.belongsTo(Task, {allowNull: false});
 
-// Uma Task tem várias TaskInstance
-Task.hasMany(TaskInstance, { foreignKey: 'taskId', allowNull: false, onDelete: 'CASCADE'});
-TaskInstance.belongsTo(Task, { foreignKey: 'taskId', allowNull: false});
+Task.belongsTo(Importance, {allowNull: false });
+Importance.hasMany(Task);
 
-// Relacionando Task com Importance e Difficulty
-Task.belongsTo(Importance, { foreignKey: 'importanceId', allowNull: false });
-Importance.hasMany(Task, { foreignKey: 'importanceId' });
+Task.belongsTo(Difficulty, {allowNull: false });
+Difficulty.hasMany(Task);
 
-Task.belongsTo(Difficulty, { foreignKey: 'difficultyId', allowNull: false });
-Difficulty.hasMany(Task, { foreignKey: 'difficultyId' });
+Task.hasMany(TaskInstance, {allowNull: false, onDelete: 'CASCADE'});
+TaskInstance.belongsTo(Task, {allowNull: false});
 
 
 module.exports = Task;

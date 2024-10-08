@@ -2,10 +2,10 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 
-const TaskInstanceStateHistory = require('./taskStateHistory.js')
+const HabitInstanceStateHistory = require('./habitInstanceStateHistory.js')
 
 
-const TaskInstance = sequelize.define('taskInstance', {
+const HabitInstance = sequelize.define('habitInstance', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -30,16 +30,19 @@ const TaskInstance = sequelize.define('taskInstance', {
     type: Sequelize.DATE,
     allowNull: false
   },
-  stepCompletionStatus: {
-    type: Sequelize.JSON,
-    allowNull: true,
-    // {step1: boolean, step2: boolean, step3: boolean}
+  goalInstanceCount: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  isDone: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
   },
 });
 
 
-TaskInstance.hasMany(TaskInstanceStateHistory, { onDelete: 'CASCADE' });
-TaskInstanceStateHistory.belongsTo(TaskInstance);
+HabitInstance.hasMany(HabitInstanceStateHistory, { onDelete: 'CASCADE' });
+HabitInstanceStateHistory.belongsTo(HabitInstance, {allowNull: false });
 
 
-module.exports = TaskInstance;
+module.exports = HabitInstance;

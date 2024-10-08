@@ -3,6 +3,7 @@ const sequelize = require('../../util/db.js');
 
 
 const ActivityStateHistory = require('./activityStateHistory.js');
+const Dependency = require('./dependency.js')
 
 
 const Activity = sequelize.define('activity', {
@@ -44,7 +45,14 @@ const Activity = sequelize.define('activity', {
 });
 
 
-Activity.hasMany(ActivityStateHistory, { foreignKey: 'activityId', onDelete: 'CASCADE' });
-ActivityStateHistory.belongsTo(Activity, { foreignKey: 'activityId' });
+Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
+ActivityStateHistory.belongsTo(Activity);
+
+Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
+Dependency.belongsTo(Activity, { foreignKey: 'dependentActivityId' });
+
+Activity.hasMany(Dependency, { foreignKey: 'requiredActivityId', onDelete: 'CASCADE' });
+Dependency.belongsTo(Activity, { foreignKey: 'requiredActivityId' });
+
 
 module.exports = Activity;
