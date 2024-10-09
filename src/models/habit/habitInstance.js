@@ -38,6 +38,10 @@ const HabitInstance = sequelize.define('habitInstance', {
     type: Sequelize.BOOLEAN,
     allowNull: false,
   },
+  priorityEvolved: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+  }
 });
 
 

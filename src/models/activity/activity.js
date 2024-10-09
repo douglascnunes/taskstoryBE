@@ -3,7 +3,12 @@ const sequelize = require('../../util/db.js');
 
 
 const ActivityStateHistory = require('./activityStateHistory.js');
-const Dependency = require('./dependency.js')
+const Difficulty = require('./difficulty.js')
+const Importance = require('./importance.js')
+const Priority = require('./priority.js')
+const Dependency = require('./dependency.js');
+const Keyword = require('../areaOfLife/keyword.js');
+const ActivityKeyword = require('./activityKeyword.js');
 
 
 const Activity = sequelize.define('activity', {
@@ -48,11 +53,23 @@ const Activity = sequelize.define('activity', {
 Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
 ActivityStateHistory.belongsTo(Activity);
 
+Activity.belongsTo(Importance, {allowNull: false });
+Importance.hasMany(Activity);
+
+Activity.belongsTo(Difficulty, {allowNull: false });
+Difficulty.hasMany(Activity);
+
+Activity.belongsTo(Priority, {allowNull: false });
+Priority.hasMany(Activity);
+
 Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
 Dependency.belongsTo(Activity, { foreignKey: 'dependentActivityId' });
 
 Activity.hasMany(Dependency, { foreignKey: 'requiredActivityId', onDelete: 'CASCADE' });
 Dependency.belongsTo(Activity, { foreignKey: 'requiredActivityId' });
+
+Activity.belongsToMany(Keyword, { through: ActivityKeyword });
+Keyword.belongsToMany(Activity, { through: ActivityKeyword });
 
 
 module.exports = Activity;

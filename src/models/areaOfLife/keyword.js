@@ -1,19 +1,23 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 
-const SubTask = sequelize.define('subTask', {
+const Keyword = sequelize.define('keyword', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
-  tagName: {
+  name: {
     type: Sequelize.STRING,
     allowNull: false,
-  }
+  },
+  color: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  },
 });
 
 
-module.exports = SubTask;
+module.exports = Keyword;

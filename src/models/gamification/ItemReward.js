@@ -1,19 +1,18 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 
-const SubTask = sequelize.define('subTask', {
+const ItemReward = sequelize.define('itemReward', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
   },
-  tagName: {
-    type: Sequelize.STRING,
+  quantity: {
+    type: Sequelize.INTEGER,
     allowNull: false,
   }
 });
 
-
-module.exports = SubTask;
+module.exports = ItemReward;

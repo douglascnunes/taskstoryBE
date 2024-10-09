@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 
-const Phase = sequelize.define('phase', {
+const HabitPhase = sequelize.define('habitPhase', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -27,4 +27,4 @@ const Phase = sequelize.define('phase', {
 });
 
 
-module.exports = Phase;
+module.exports = HabitPhase;

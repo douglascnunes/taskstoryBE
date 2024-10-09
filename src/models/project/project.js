@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
-const SubTask = require('./subTask.js')
-const TaskInstance = require('../task/taskInstance.js')
+const Activity = require('../activity/activity.js');
+
+const SubTask = require('./subTask.js');
+const TaskInstance = require('../task/taskInstance.js');
 
 
 const Project = sequelize.define('project', {
@@ -11,7 +13,15 @@ const Project = sequelize.define('project', {
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
-  }
+  },
+  priorityEvolved: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+  },
+  finalDate: {
+    type: Sequelize.DATE,
+    allowNull: true,
+  },
 });
 
 

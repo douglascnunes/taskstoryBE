@@ -2,12 +2,12 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 const Activity = require('../activity/activity');
-// const Keyword = require('../');
+const Keyword = require('../areaOfLife/keyword');
 // const GeneralInformation = require('../');
 
 
 
-const Challenge = sequelize.define('habit', {
+const Challenge = sequelize.define('challenge', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -22,15 +22,18 @@ const Challenge = sequelize.define('habit', {
     ),
   allowNull: false,
   },
-
   goalValue: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
+  tagName: {
+    type: Sequelize.STRING,
+    allowNull: false,
+  }
 });
 
-Challenge.hasOne(Activity, {allowNull: true});
-// Challenge.hasOne(Keyword, {allowNull: true});
+Challenge.belongsTo(Activity, {foreignKey: 'trackedActivityId', allowNull: true});
+Challenge.belongsTo(Keyword, {foreignKey: 'trackedKeywordId', allowNull: true});
 // Challenge.hasOne(GeneralInformation, {allowNull: true});
 
 

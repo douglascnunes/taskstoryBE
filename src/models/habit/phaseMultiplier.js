@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 
-const PhaseMultiplier = sequelize.define('phasemultiplier', {
+const PhaseMultiplier = sequelize.define('phaseMultiplier', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,

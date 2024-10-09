@@ -2,7 +2,7 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 
-const GoalInstanceStateHistory = require('./goalStateHistory.js')
+const GoalInstanceStateHistory = require('./goalInstanceStateHistory.js')
 
 
 const GoalInstance = sequelize.define('goalInstance', {
@@ -39,6 +39,10 @@ const GoalInstance = sequelize.define('goalInstance', {
     allowNull: true,
     // {challenge1: {count: integer, isDone: boolean}, challenge1: {count: integer, isDone: boolean}}
   },
+  priorityEvolved: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+  }
 });
 
 

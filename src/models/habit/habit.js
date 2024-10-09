@@ -3,13 +3,11 @@ const sequelize = require('../../util/db');
 
 
 const Activity = require('../activity/activity.js');
-const Importance = require('../activity/importance');
-const Difficulty = require('../activity/difficulty');
 
 const HabitLevel = require('./habitLevel');
 const PhaseMultiplier = require('./phaseMultiplier');
 const HabitPhaseMultiplier = require('./habitPhaseMultiplier');
-const Phase = require('./phase');
+const HabitPhase = require('./habitPhase.js');
 const HabitInstance = require('./habitInstance');
 
 
@@ -57,18 +55,16 @@ const Habit = sequelize.define('habit', {
   },
   currentExp: {
     type: Sequelize.INTEGER
-  }
+  },
+  noOverdueStreak: {
+    type: Sequelize.INTEGER,
+    allowNull: true,
+  },
 });
 
 
 Activity.hasOne(Habit, {onDelete: 'CASCADE'});
 Habit.belongsTo(Activity, {allowNull: false});
-
-Habit.belongsTo(Importance, {allowNull: false });
-Importance.hasMany(Task);
-
-Habit.belongsTo(Difficulty, {allowNull: false });
-Difficulty.hasMany(Task);
 
 Habit.belongsTo(HabitLevel, { foreignKey: 'currentLevel'});
 HabitLevel.hasMany(Habit, { foreignKey: 'currentLevel'});
@@ -76,8 +72,8 @@ HabitLevel.hasMany(Habit, { foreignKey: 'currentLevel'});
 Habit.belongsToMany(PhaseMultiplier, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });
 PhaseMultiplier.belongsToMany(Habit, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });
 
-Habit.hasMany(Phase, {onDelete: 'CASCADE'});
-Phase.belongsTo(Habit, {allowNull: false });
+Habit.hasMany(HabitPhase, {onDelete: 'CASCADE'});
+HabitPhase.belongsTo(Habit, {allowNull: false });
 
 Habit.hasMany(HabitInstance, {allowNull: false, onDelete: 'CASCADE'});
 HabitInstance.belongsTo(Habit, {allowNull: false});

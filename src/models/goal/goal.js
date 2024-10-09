@@ -2,14 +2,12 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
 const Activity = require('../activity/activity.js');
-const Importance = require('../activity/importance');
-const Difficulty = require('../activity/difficulty');
 
 const Challenge = require('./challenge');
 const GoalInstance = require('./goalInstance.js');
 
 
-const Goal = sequelize.define('task', {
+const Goal = sequelize.define('goal', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -33,12 +31,6 @@ const Goal = sequelize.define('task', {
 
 Activity.hasOne(Goal, {onDelete: 'CASCADE'});
 Goal.belongsTo(Activity, {allowNull: false});
-
-Goal.belongsTo(Importance, {allowNull: false });
-Importance.hasMany(Goal);
-
-Goal.belongsTo(Difficulty, {allowNull: false });
-Difficulty.hasMany(Goal);
 
 Goal.hasMany(Challenge, {onDelete: 'CASCADE'});
 Challenge.belongsTo(Goal, {allowNull: false});

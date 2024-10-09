@@ -35,6 +35,10 @@ const TaskInstance = sequelize.define('taskInstance', {
     allowNull: true,
     // {step1: boolean, step2: boolean, step3: boolean}
   },
+  priorityEvolved: {
+    type: Sequelize.BOOLEAN,
+    allowNull: false,
+  }
 });
 
 
