@@ -3,7 +3,8 @@ const express = require('express');
 const sequelize = require('./src/util/db.js');
 
 
-const overviewRoutes = require('./src/routes/overview.js')
+const overviewRoutes = require('./src/routes/overview.js');
+
 
 
 const app = express();
@@ -14,13 +15,13 @@ app.use(express.urlencoded({extended: true}));
 app.use(overviewRoutes);
 
 
+
 sequelize.authenticate().then(function(){
   console.log("Conectado com sucesso!")
 }).catch(function(erro){
   console.log("Falha ao se conectar: "+erro)
 })
 
-sequelize.sync({force: (process.env.SYNC_FORCE === 'true')})
 
 
 app.listen(process.env.PORT || 3000, () => {

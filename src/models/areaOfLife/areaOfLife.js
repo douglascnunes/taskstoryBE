@@ -26,7 +26,7 @@ const AreaOfLife = sequelize.define('areaOfLife', {
 AreaOfLife.hasMany(Keyword, { onDelete: 'CASCADE' }); // Uma AreaOfLife pode ter várias Keyword
 Keyword.belongsTo(AreaOfLife, { onDelete: 'CASCADE' }); // Cada Keyword pertence a uma AreaOfLife
 
-AreaOfLife.belongsTo(Keyword, { foreignKey: 'defaultKeywordId', onDelete: 'CASCADE' });
+AreaOfLife.belongsTo(Keyword, { foreignKey: 'defaultKeywordId', onDelete: 'CASCADE', allowNull: true });
 
 
 module.exports = AreaOfLife;

@@ -2,11 +2,29 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db.js');
 
 
-const UserSessionDay = require('./userSessionDay.js');
-
 const Activity = require('../activity/activity.js');
 const Keyword = require('../areaOfLife/keyword.js');
 const AreaOfLife = require('../areaOfLife/areaOfLife.js');
+const UserAreaOfLifePreference = require('./userAreaofLifePreferences.js');
+
+const UserSessionDay = require('./userSessionDay.js');
+const LifeGoal = require('./lifeGoal.js');
+const UserLevel = require('./userLevel.js');
+
+const Item = require('../gamification/item.js');
+const Inventory = require('./userInventory.js');
+const GamificationComponent = require('../gamification/gamificationComponent.js');
+const UserGamiComponent = require('./userGamiComponent.js');
+
+
+// User.create({
+//   title: 'test',
+//   email: 'test@test.com',
+//   password: '123',
+//   dateBirth: "2000-01-01 00:00:00+00:00",
+//   selfRegulationPoints: 0,
+//   selfEfficacynPoints: 0,
+//   procrastinationType: 'USUARIO_PADRAO',
 
 
 const User = sequelize.define('user', {
@@ -32,17 +50,15 @@ const User = sequelize.define('user', {
     type: Sequelize.DATE,
     allowNull: false,
   },
-  accountLevel: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
   totalLevelPoints: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   },
   currentLevelPoints: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   }, 
   selfRegulationPoints: {
     type: Sequelize.FLOAT,
@@ -52,13 +68,10 @@ const User = sequelize.define('user', {
     type: Sequelize.FLOAT,
     allowNull: false,
   },
-  selfRegulationPoints: {
-    type: Sequelize.FLOAT,
-    allowNull: false,
-  },
   initalDateQuadrant: {
     type: Sequelize.DATE,
     allowNull: false,
+    defaultValue: new Date,
   },
   procrastinationType: {
     type: Sequelize.ENUM(
@@ -73,30 +86,37 @@ const User = sequelize.define('user', {
   priorityEvolutionLimite: {
     type: Sequelize.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
   },
   priorityEvolutionLimiteValue: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 10,
   },
   invertSection: {
     type: Sequelize.BOOLEAN,
     allowNull: false,
+    defaultValue: false,
   },
   recordLoginDailyStreak: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   },
   recordGTDMethodWeeklyStreak: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   },
   notificationDotMission: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   },
   notificationDotThophie: {
     type: Sequelize.INTEGER,
     allowNull: false,
+    defaultValue: 0,
   },
 });
 
@@ -107,16 +127,23 @@ UserSessionDay.belongsTo(User);
 User.hasMany(Activity, { onDelete: 'CASCADE' });
 Activity.belongsTo(User, { allowNull: false });
 
+User.belongsTo(UserLevel);
+UserLevel.hasMany(User);
+
 User.hasMany(Keyword, { onDelete: 'CASCADE' });
 Keyword.belongsTo(User, { allowNull: true });
 
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'desireAreaOfLife1' });
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'desireAreaOfLife2' });
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'desireAreaOfLife3' });
+User.belongsToMany(AreaOfLife, { through: UserAreaOfLifePreference, onDelete: 'CASCADE' });
+AreaOfLife.belongsToMany(User, { through: UserAreaOfLifePreference, onDelete: 'CASCADE' });
 
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'lessAreaOfLife1' });
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'lessAreaOfLife2' });
-User.belongsTo(AreaOfLife, { allowNull: true, foreignKey: 'lessAreaOfLife3' });
+User.hasMany(LifeGoal, { onDelete: 'CASCADE' });
+LifeGoal.belongsTo(User, { allowNull: true });
+
+User.belongsToMany(Item, { through: Inventory, onDelete: 'CASCADE' });
+Item.belongsToMany(User, { through: Inventory, onDelete: 'CASCADE' });
+
+User.belongsToMany(GamificationComponent, { through: UserGamiComponent, onDelete: 'CASCADE' });
+GamificationComponent.belongsToMany(User, { through: UserGamiComponent, onDelete: 'CASCADE' });
 
 
 module.exports = User;
