@@ -1,9 +1,9 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 const Activity = require('../activity/activity.js');
 
-const Challenge = require('./challenge');
+const Challenge = require('./challenge.js');
 const GoalInstance = require('./goalInstance.js');
 
 

@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../../util/db');
 
+const ENUM = require('../../util/enum');
 
 const ActivityStateHistory = sequelize.define('activityStateHistory', {
   id: {
@@ -10,19 +11,7 @@ const ActivityStateHistory = sequelize.define('activityStateHistory', {
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(
-      'LIXO', 
-      'REFERENCIA', 
-      'INCUBACAO', 
-      'A_FAZER', 
-      'FAZENDO', 
-      'AGUARDANDO', 
-      'CONCLUIDA', 
-      'CONCLUIDA_ATRASADA', 
-      'ATRASADA', 
-      'EXCLUIDA', 
-      'PAUSADA'
-    ),
+    type: Sequelize.ENUM(ENUM.ACTIVITY_TYPE),
     allowNull: false,
   },
 });

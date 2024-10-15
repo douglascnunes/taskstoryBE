@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
 const sequelize = require('../../util/db.js');
 
+const ENUM = require('../../util/enum.js');
 
-const UserAreaOfLifePreference = sequelize.define('userAreaOfLifePreference', {
+
+const UserAreaOfLifeConfig = sequelize.define('userAreaOfLifeConfig', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
@@ -10,10 +12,10 @@ const UserAreaOfLifePreference = sequelize.define('userAreaOfLifePreference', {
     primaryKey: true
   },
   preferenceType: {
-    type: Sequelize.ENUM('DESEJAVEL', 'MENOS_REALIZADA'),
+    type: Sequelize.ENUM(ENUM.USER_AREAOFLIFE_CONFIG),
     allowNull: false,
   },
 });
 
 
-module.exports = UserAreaOfLifePreference;
+module.exports = UserAreaOfLifeConfig;

@@ -1,8 +1,10 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 
 const GoalInstanceStateHistory = require('./goalInstanceStateHistory.js')
+
+const ENUM = require('../../util/enum.js');
 
 
 const GoalInstance = sequelize.define('goalInstance', {
@@ -13,18 +15,9 @@ const GoalInstance = sequelize.define('goalInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(
-      'A_FAZER',
-      'FAZENDO',
-      'AGUARDANDO',
-      'CONCLUIDA',
-      'CONCLUIDA_ATRASADA', 
-      'ATRASADA',
-      'EXCLUIDA',
-      'PAUSADA'
-    ),
+    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
     allowNull: false,
-    defaultValue: 'A_FAZER',
+    defaultValue: ENUM.INSTANCE_STATE[0],
   },
   initialDate: {
     type: Sequelize.DATE,

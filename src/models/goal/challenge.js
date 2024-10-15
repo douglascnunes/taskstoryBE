@@ -1,10 +1,11 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
-const Activity = require('../activity/activity');
-const Keyword = require('../areaOfLife/keyword');
+const Activity = require('../activity/activity.js');
+const Keyword = require('../areaOfLife/keyword.js');
 // const GeneralInformation = require('../');
 
+const ENUM = require('../../util/enum.js');
 
 
 const Challenge = sequelize.define('challenge', {
@@ -15,11 +16,7 @@ const Challenge = sequelize.define('challenge', {
     primaryKey: true
   },
   type: {
-    type: Sequelize.ENUM(
-    'RASTREAR_ATIVIDADE',
-    'RASTREAR_PALAVRA_CHAVE',
-    'RASTREAR_INFO_GERAIS',
-    ),
+    type: Sequelize.ENUM(ENUM.CHALLENGE_TYPE),
   allowNull: false,
   },
   goalValue: {

@@ -5,7 +5,7 @@ const sequelize = require('../../util/db.js');
 const Activity = require('../activity/activity.js');
 const Keyword = require('../areaOfLife/keyword.js');
 const AreaOfLife = require('../areaOfLife/areaOfLife.js');
-const UserAreaOfLifePreference = require('./userAreaofLifePreferences.js');
+const UserAreaOfLifeConfig = require('./userAreaofLifeConfig.js');
 
 const UserSessionDay = require('./userSessionDay.js');
 const LifeGoal = require('./lifeGoal.js');
@@ -16,15 +16,7 @@ const Inventory = require('./userInventory.js');
 const GamificationComponent = require('../gamification/gamificationComponent.js');
 const UserGamiComponent = require('./userGamiComponent.js');
 
-
-// User.create({
-//   title: 'test',
-//   email: 'test@test.com',
-//   password: '123',
-//   dateBirth: "2000-01-01 00:00:00+00:00",
-//   selfRegulationPoints: 0,
-//   selfEfficacynPoints: 0,
-//   procrastinationType: 'USUARIO_PADRAO',
+const ENUM = require('../../util/enum.js');
 
 
 const User = sequelize.define('user', {
@@ -63,10 +55,12 @@ const User = sequelize.define('user', {
   selfRegulationPoints: {
     type: Sequelize.FLOAT,
     allowNull: false,
+    defaultValue: 0,
   },
   selfEfficacynPoints: {
     type: Sequelize.FLOAT,
     allowNull: false,
+    defaultValue: 0,
   },
   initalDateQuadrant: {
     type: Sequelize.DATE,
@@ -74,14 +68,9 @@ const User = sequelize.define('user', {
     defaultValue: new Date,
   },
   procrastinationType: {
-    type: Sequelize.ENUM(
-      'SUPER_PROCRASTINADOR',
-      'PERFECCIONISTA',
-      'DESORGANIZADO',
-      'ANTIPROCRASTINADOR',
-      'USUARIO_PADRAO'
-    ),
+    type: Sequelize.ENUM(ENUM.PROCRASTINATION_TYPE),
     allowNull: false,
+    defaultValue: ENUM.PROCRASTINATION_TYPE[-1],
   },
   priorityEvolutionLimite: {
     type: Sequelize.BOOLEAN,
@@ -133,8 +122,8 @@ UserLevel.hasMany(User);
 User.hasMany(Keyword, { onDelete: 'CASCADE' });
 Keyword.belongsTo(User, { allowNull: true });
 
-User.belongsToMany(AreaOfLife, { through: UserAreaOfLifePreference, onDelete: 'CASCADE' });
-AreaOfLife.belongsToMany(User, { through: UserAreaOfLifePreference, onDelete: 'CASCADE' });
+User.belongsToMany(AreaOfLife, { through: UserAreaOfLifeConfig, onDelete: 'CASCADE' });
+AreaOfLife.belongsToMany(User, { through: UserAreaOfLifeConfig, onDelete: 'CASCADE' });
 
 User.hasMany(LifeGoal, { onDelete: 'CASCADE' });
 LifeGoal.belongsTo(User, { allowNull: true });

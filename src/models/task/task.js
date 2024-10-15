@@ -1,10 +1,10 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 const Activity = require('../activity/activity.js');
 
-const Step = require('./step');
-const TaskInstance = require('./taskInstance');
+const Step = require('./step.js');
+const TaskInstance = require('./taskInstance.js');
 
 
 const Task = sequelize.define('task', {

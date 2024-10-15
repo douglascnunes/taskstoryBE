@@ -4,6 +4,8 @@ const sequelize = require('../../util/db.js');
 
 const GamificationComponent = require('./gamificationComponent.js');
 
+const ENUM = require('../../util/enum.js');
+
 
 const Mission = sequelize.define('mission', {
   id: {
@@ -13,12 +15,7 @@ const Mission = sequelize.define('mission', {
     primaryKey: true
   },
   category: {
-    type: Sequelize.ENUM(
-      'AUTORREGULACAO',
-      'AUTOEFICACIA',
-      'ESPECIAL',
-      'COMUM',
-    ),
+    type: Sequelize.ENUM(ENUM.MISSION_TYPE),
     allowNull: false,
   },
   unlockLevel: {

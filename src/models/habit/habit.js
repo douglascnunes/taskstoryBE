@@ -1,14 +1,16 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 
 const Activity = require('../activity/activity.js');
 
-const HabitLevel = require('./habitLevel');
-const PhaseMultiplier = require('./phaseMultiplier');
-const HabitPhaseMultiplier = require('./habitPhaseMultiplier');
+const HabitLevel = require('./habitLevel.js');
+const PhaseMultiplier = require('./phaseMultiplier.js');
+const HabitPhaseMultiplier = require('./habitPhaseMultiplier.js');
 const HabitPhase = require('./habitPhase.js');
-const HabitInstance = require('./habitInstance');
+const HabitInstance = require('./habitInstance.js');
+
+const ENUM = require('../../util/enum.js');
 
 
 const Habit = sequelize.define('habit', {
@@ -19,11 +21,7 @@ const Habit = sequelize.define('habit', {
     primaryKey: true
   },
   notificationType: {
-    type: Sequelize.ENUM(
-    'HORAS_ANTES',
-    'NO_LOGIN',
-    'DESLIGADO',
-    ),
+    type: Sequelize.ENUM(ENUM.HABIT_NOTIFICATION_TYPE),
   allowNull: false,
   },
   notificationHours : {
@@ -38,11 +36,7 @@ const Habit = sequelize.define('habit', {
     allowNull: true,
   },
   goalType: {
-    type: Sequelize.ENUM(
-    'QUANTIDADE_MINIMA_PERIODO',
-    'SEQUENCIA_SUCESSO',
-    'VALOR_MEDIO_PERIODO'
-    ),
+    type: Sequelize.ENUM(ENUM.HABIT_GOAL_TYPE),
   allowNull: false,
   },
   goalDescription: {

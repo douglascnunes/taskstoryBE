@@ -10,6 +10,8 @@ const Dependency = require('./dependency.js');
 const Keyword = require('../areaOfLife/keyword.js');
 const ActivityKeyword = require('./activityKeyword.js');
 
+const ENUM = require('../../util/enum.js');
+
 
 const Activity = sequelize.define('activity', {
   id: {
@@ -26,26 +28,14 @@ const Activity = sequelize.define('activity', {
     type: Sequelize.STRING,
   },
   activityType: {
-    type: Sequelize.ENUM('activity','task','project','habit','goal','planing'),
+    type: Sequelize.ENUM(ENUM.ACTIVITY_TYPE),
     allowNull: false,
-    defaultValue: 'activity',
+    defaultValue: ENUM.ACTIVITY_TYPE[0],
   },
   currentState: {
-    type: Sequelize.ENUM(
-      'LIXO', 
-      'REFERENCIA', 
-      'INCUBACAO', 
-      'A_FAZER', 
-      'FAZENDO', 
-      'AGUARDANDO', 
-      'CONCLUIDA', 
-      'CONCLUIDA_ATRASADA', 
-      'ATRASADA', 
-      'EXCLUIDA', 
-      'PAUSADA'
-    ),
+    type: Sequelize.ENUM(ENUM.ACTIVITY_STATE),
     allowNull: false,
-    defaultValue: 'REFERENCIA',
+    defaultValue: ENUM.ACTIVITY_STATE[0],
   }
 });
 
@@ -53,13 +43,13 @@ const Activity = sequelize.define('activity', {
 Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
 ActivityStateHistory.belongsTo(Activity);
 
-Activity.belongsTo(Importance, {allowNull: false });
+Activity.belongsTo(Importance, {allowNull: true });
 Importance.hasMany(Activity);
 
-Activity.belongsTo(Difficulty, {allowNull: false });
+Activity.belongsTo(Difficulty, {allowNull: true });
 Difficulty.hasMany(Activity);
 
-Activity.belongsTo(Priority, {allowNull: false });
+Activity.belongsTo(Priority, {allowNull: true });
 Priority.hasMany(Activity);
 
 Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });

@@ -22,11 +22,11 @@ const Priority = sequelize.define('priority', {
     allowNull: false,
   },
   lowerRangeWeight: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.FLOAT,
     allowNull: false,
   },
   upperRangeWeight: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.FLOAT,
     allowNull: false,
   }
 });

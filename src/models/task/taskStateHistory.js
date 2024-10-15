@@ -1,6 +1,7 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
+const ENUM = require('../../util/enum.js');
 
 const TaskInstanceStateHistory = sequelize.define('taskInstanceStateHistory', {
   id: {
@@ -10,19 +11,7 @@ const TaskInstanceStateHistory = sequelize.define('taskInstanceStateHistory', {
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(
-      'LIXO', 
-      'REFERENCIA', 
-      'INCUBACAO', 
-      'A_FAZER', 
-      'FAZENDO', 
-      'AGUARDANDO', 
-      'CONCLUIDA', 
-      'CONCLUIDA_ATRASADA', 
-      'ATRASADA', 
-      'EXCLUIDA', 
-      'PAUSADA'
-    ),
+    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
     allowNull: false,
   },
 });

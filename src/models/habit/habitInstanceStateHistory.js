@@ -1,5 +1,8 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
+
+
+const ENUM = require('../../util/enum.js');
 
 
 const HabitInstanceStateHistory = sequelize.define('habitInstanceStateHistory', {
@@ -10,19 +13,7 @@ const HabitInstanceStateHistory = sequelize.define('habitInstanceStateHistory', 
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(
-      'LIXO', 
-      'REFERENCIA', 
-      'INCUBACAO', 
-      'A_FAZER', 
-      'FAZENDO', 
-      'AGUARDANDO', 
-      'CONCLUIDA', 
-      'CONCLUIDA_ATRASADA', 
-      'ATRASADA', 
-      'EXCLUIDA', 
-      'PAUSADA'
-    ),
+    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
     allowNull: false,
   },
 });

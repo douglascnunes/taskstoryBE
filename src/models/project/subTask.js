@@ -1,5 +1,5 @@
 const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
+const sequelize = require('../../util/db.js');
 
 
 const SubTask = sequelize.define('subTask', {
