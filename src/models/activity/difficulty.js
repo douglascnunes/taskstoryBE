@@ -2,6 +2,9 @@ const Sequelize = require('sequelize');
 const sequelize = require('../../util/db.js');
 
 
+const ENUM = require('../../util/enum.js');
+
+
 const Difficulty = sequelize.define('difficulty', {
   id: {
     type: Sequelize.INTEGER,
@@ -10,7 +13,7 @@ const Difficulty = sequelize.define('difficulty', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.STRING,
+    type: Sequelize.ENUM(ENUM.DIFFICULTY_NAME),
     allowNull: false,
   },
   weight: {

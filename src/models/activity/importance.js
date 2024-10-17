@@ -1,6 +1,8 @@
 const Sequelize = require('sequelize');
-
 const sequelize = require('../../util/db.js');
+
+
+const ENUM = require('../../util/enum.js');
 
 
 const Importance = sequelize.define('importance', {
@@ -11,7 +13,7 @@ const Importance = sequelize.define('importance', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.STRING,
+    type: Sequelize.ENUM(ENUM.IMPORTANCE_NAME),
     allowNull: false,
   },
   weight: {

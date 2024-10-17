@@ -1,6 +1,9 @@
 const Sequelize = require('sequelize');
-
 const sequelize = require('../../util/db.js');
+
+
+const ENUM = require('../../util/enum.js');
+
 
 const Priority = sequelize.define('priority', {
   id: {
@@ -10,7 +13,7 @@ const Priority = sequelize.define('priority', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.STRING,
+    type: Sequelize.ENUM(ENUM.PRIORITY_NAME),
     allowNull: false,
   },
   pointsMultiplier: {

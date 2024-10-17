@@ -7,6 +7,8 @@ const errorHelper = require('../util/error.js');
 const Activity = require('../models/activity/activity.js');
 const AreaOfLife = require('../models/areaOfLife/areaOfLife.js');
 const Keyword = require('../models/areaOfLife/keyword.js');
+const Priority = require('../models/activity/priority.js');
+const ActivityKeyword = require('../models/activity/activityKeyword.js');
 
 
 
@@ -15,24 +17,24 @@ exports.createActivity = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
-  
-  const { title, description, keywords} = req.body;
+
+  const { title, description, keywords } = req.body;
 
   try {
     const newActivity = await Activity.create({
-      title: title, 
+      title: title,
       description: description,
       userId: req.userId
     });
 
     const keywordsFetched = await Keyword.findAll({
-      where: {id: keywords}
+      where: { id: keywords }
     });
 
     await newActivity.setKeywords(keywordsFetched);
     res.status(201).json({
-      message: 'Activity created successfully!', 
-      activity: newActivity, 
+      message: 'Activity created successfully!',
+      activity: newActivity,
     });
   }
   catch (err) {
@@ -41,56 +43,85 @@ exports.createActivity = async (req, res, next) => {
     }
     next(err);
   }
-  
+
 }
 
 
 
 exports.getFilteredOverview = async (req, res, next) => {
-  const userId = req.userId;
-  const { state, priority, type, keyword, areaoflife } = req.query;
+  const { state, priority, keyword, areaoflife } = req.query;
 
-  let filters = {};
-
-
-  if (state) {
-    filters.currentState = state.split(',').map(s => s.toUpperCase());
-  } else {
-    filters.currentState = ['AFAZER', 'FAZENDO', 'AGUARDANDO', 'ATRASADA'];
-  };
-  if (priority) {
-    filters.priority = priority.split(',');
-  };
-  if (type) {
-    filters.type = type.split(',');
-  };
+  const decodedPriority = priority ? decodeURIComponent(priority) : null;
+  const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
+  const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
 
   try {
-    if (areaoflife) {
-      const areaOfLifeNames = areaoflife.split(',');
-      filters.areaOfLife = await AreaOfLife.findAll({
+    let filters = {};
+
+    // Search State
+    if (state) {
+      const stateArray = state.split(',').map(s => s.toUpperCase());
+      filters.currentState = stateArray;
+    }
+
+    // Search Priority
+    if (decodedPriority) {
+      const foundPriorities = await Priority.findAll({
         attributes: ['id'],
-        where: {name: areaOfLifeNames}
+        where: {
+          name: decodedPriority.split(',').map(s => s.toUpperCase())
+        }
       });
-    };
-    if (keyword) {
-      const keywordNames = keyword.split(',');
-      filters.keyword = await Keyword.findAll({
-        attributes: ['id'],
-        where: {[Op.or]: [{name: keywordNames}, {areaOfLifeId: filters.areaOfLife}]},
-      });
-    };
-  
-    const activities = await Activity.findAll({
-      where: {
-        userId: userId,
-        ...filters
+      if (foundPriorities) {
+        filters.priorityId = foundPriorities.map(p => p.id);
       }
-    })
+    }
+
+    // Search AreOfLife
+    let foundAreaOfLifesIds = []
+    if (decodedAreaOfLife) {
+      const foundAreaOfLifes = await AreaOfLife.findAll({
+        attributes: ['id'],
+        where: {
+          name: decodedAreaOfLife.split(',')
+        }
+      });
+      if (foundAreaOfLifes) {
+        foundAreaOfLifesIds = foundAreaOfLifes.map(p => p.id);
+      };
+    };
+
+    // Search Keyword
+    if (decodedKeyword || decodedAreaOfLife) {
+      const foundKeywords = await Keyword.findAll({
+        attributes: ['id'],
+        where: {
+          [Op.or]: [
+            (decodedKeyword ? {name: decodedKeyword.split(',')} : null), 
+            {areaOfLifeId: foundAreaOfLifesIds}
+          ],
+          userId: { [Op.or]: [req.userId, null] }
+        }
+      });
+      console.log(foundKeywords)
+      if (foundKeywords) {
+        const activitiesQueryKeyword = await ActivityKeyword.findAll({
+          attributes: ['activityId'],
+          group: ['activityId'],
+          where: { keywordId: foundKeywords.map(k => k.id) }
+        })
+        filters.id = activitiesQueryKeyword.map(k => k.activityId);
+      };
+    };
+
+
+    const activities = await Activity.findAll({
+      where: filters
+    });
 
     res.status(200).json({
-      message: 'Fetched Activities successfully.', 
-      activities: activities 
+      message: 'Fetched Activities successfully.',
+      activities: activities
     });
   }
   catch (err) {

@@ -21,6 +21,27 @@ exports.ACTIVITY_STATE = [
   'LIXO', 
 ];
 
+exports.IMPORTANCE_NAME = [
+  'BAIXA',
+  'MEDIA',
+  'ALTA',
+];
+
+exports.DIFFICULTY_NAME = [
+  'BAIXA',
+  'MEDIA',
+  'ALTA',
+];
+
+exports.PRIORITY_NAME = [
+  'MINIMA',
+  'BAIXA',
+  'MEDIA',
+  'ALTA',
+  'MAXIMA',
+  'URGENTE',
+];
+
 exports.INSTANCE_STATE = [
   'AFAZER',  // Alguns models possuem este primeiro valor como default = [0] 
   'FAZENDO', 

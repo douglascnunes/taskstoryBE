@@ -7,7 +7,6 @@ module.exports = (req, res, next) => {
   if(!authHeader) { throw errorHelper.controllerErrorObj('Não autenticado.', 401);
   }
   const token = authHeader //.split(' ')[1];
-  console.log(token)
   let decodedToken;
   try {
     decodedToken = jwt.verify(token, process.env.JWT_SECRET);
@@ -18,6 +17,5 @@ module.exports = (req, res, next) => {
   if(!decodedToken) { throw errorHelper.controllerErrorObj('Não autenticado.', 401);
   }
   req.userId = decodedToken.userId;
-  console.log(decodedToken)
   next();
 }
