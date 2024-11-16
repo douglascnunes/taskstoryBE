@@ -22,17 +22,18 @@ const Habit = sequelize.define('habit', {
   },
   notificationType: {
     type: Sequelize.ENUM(ENUM.HABIT_NOTIFICATION_TYPE),
-  allowNull: false,
+  allowNull: true,
   },
   notificationHours : {
-    type: Sequelize.INTEGER
+    type: Sequelize.INTEGER,
+    allowNull: true,
   },
   frequenceIntervalDays: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: true,
   },
   frequenceWeeklyDays: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: true,
   },
   goalType: {
@@ -41,10 +42,6 @@ const Habit = sequelize.define('habit', {
   },
   goalDescription: {
     type: Sequelize.STRING,
-    allowNull: false,
-  },
-  initialGoalCountDay: {
-    type: Sequelize.DATE,
     allowNull: false,
   },
   currentExp: {
@@ -62,6 +59,9 @@ Habit.belongsTo(Activity, {allowNull: false});
 
 Habit.belongsTo(HabitLevel, { foreignKey: 'currentLevel'});
 HabitLevel.hasMany(Habit, { foreignKey: 'currentLevel'});
+
+Habit.belongsTo(HabitPhase, { foreignKey: 'currentPhase', allowNull: true});
+HabitPhase.hasMany(Habit, { foreignKey: 'currentPhase'});
 
 Habit.belongsToMany(PhaseMultiplier, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });
 PhaseMultiplier.belongsToMany(Habit, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });

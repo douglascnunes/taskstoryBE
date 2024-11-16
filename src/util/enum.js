@@ -73,8 +73,8 @@ exports.HABIT_NOTIFICATION_TYPE = [
 ];
 
 exports.HABIT_GOAL_TYPE = [
+  'SEQUENCIASUCESSO',  // Validação da rota da criação de um habit usa esta posicao para verificação
   'QUANTIDADEMINIMAPERIODO',
-  'SEQUENCIASUCESSO',
   'VALORMEDIOPERIODO',
 ];
 

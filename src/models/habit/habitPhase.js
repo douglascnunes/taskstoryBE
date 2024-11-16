@@ -13,16 +13,25 @@ const HabitPhase = sequelize.define('habitPhase', {
     type: Sequelize.INTEGER,
     allowNull: false
   },
-  goalCount: {
+  initialGoalCountDay: {
+    type: Sequelize.DATE,
+    allowNull: false,
+    defaultValue: Sequelize.NOW
+  },
+  goalValueI: {
     type: Sequelize.INTEGER,
     allowNull: false
   },
-  goalValue: {
+  goalValueF: {
     type: Sequelize.FLOAT,
   },
-  perfectGoalValue: {
-    type: Sequelize.INTEGER,
-    allowNull: false
+  // perfectGoalValue: {
+  //   type: Sequelize.INTEGER,
+  //   allowNull: false
+  // },
+  isDone: {
+    type: Sequelize.DATE,
+    allowNull: true,    
   }
 });
 

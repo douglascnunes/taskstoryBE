@@ -19,11 +19,11 @@ const Goal = sequelize.define('goal', {
     allowNull: true
   },
   frequenceIntervalDays: {
-    type: Sequelize.STRING,
+    type: Sequelize.INTEGER,
     allowNull: true
   },
   frequenceWeeklyDays: {
-    type: Sequelize.INTEGER,
+    type: Sequelize.STRING,
     allowNull: true
   },
 });

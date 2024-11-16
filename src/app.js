@@ -5,7 +5,9 @@ const sequelize = require('./util/db.js');
 const controllerErrors = require('./middleware/catchControllerErrors.js')
 
 const activityRoutes = require('./routes/activity.js');
-const authRoutes = require('./routes/auth.js')
+const authRoutes = require('./routes/auth.js');
+const taskRoutes = require('./routes/task.js');
+const habitRoutes = require('./routes/habit.js');
 
 
 
@@ -27,6 +29,8 @@ app.use((req, res, next) => {
 
 app.use('/api', activityRoutes);
 app.use('/api', authRoutes);
+app.use('/api', taskRoutes)
+app.use('/api', habitRoutes);
 
 app.use(controllerErrors);
 

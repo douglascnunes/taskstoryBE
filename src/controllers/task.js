@@ -1,36 +1,49 @@
 const sequelize = require('../util/db.js');
+const errorHelper = require('../util/error.js');
+
+const expValidatorRes = require('express-validator').validationResult;
+
 
 const Activity = require('../models/activity/activity.js');
-const Task = require('../models/task/task.js');
+const Keyword = require('../models/areaOfLife/keyword.js');
 
+const Task = require('../models/task/task.js');
+const Step = require('../models/task/step.js');
 
 
 exports.createTask = async (req, res, next) => {
+  const errors = expValidatorRes(req);
+  if (!errors.isEmpty()) {
+    return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+  }
+
   const {
     title,
     description,
-    activityType,
+    keywords,
     initialDate,
     finalDate,
     frequenceIntervalDays,
     frequenceWeeklyDays,
+    steps,
   } = req.body;
+
 
   const transaction = await sequelize.transaction();
 
   try {
-    const activity = await Activity.create(
+    const newActivity = await Activity.create(
       {
         title: title,
         description: description,
-        activityType: activityType,
+        activityType: 'TASK',
       },
       { transaction }
     );
 
-    const task = await Task.create(
+    const newTask = await Task.create(
       {
-        activityId: activity.id,
+        activityId: newActivity.id,
         initialDate: initialDate,
         finalDate: finalDate,
         frequenceIntervalDays: frequenceIntervalDays,
@@ -38,11 +51,31 @@ exports.createTask = async (req, res, next) => {
       },
       { transaction }
     );
+
+    if (steps) {
+      for (const stepDescription of steps) {
+        const step = await Step.create(
+          {
+            description: stepDescription,
+          },
+          { transaction }
+        );
+        await newTask.addStep(step, { transaction });
+      }
+    }
+
+
+    const keywordsFetched = await Keyword.findAll({
+      where: { name: keywords }
+    });
+
+    await newActivity.setKeywords(keywordsFetched, { transaction });
+
     await transaction.commit();
 
     res.status(201).json({
       message: 'Task created successfully',
-      task: task,
+      task: newTask,
     });
   } catch (error) {
     await transaction.rollback();

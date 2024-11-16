@@ -18,7 +18,11 @@ exports.createActivity = async (req, res, next) => {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
 
-  const { title, description, keywords } = req.body;
+  const {
+    title,
+    description,
+    keywords,
+  } = req.body;
 
   try {
     const newActivity = await Activity.create({
@@ -28,10 +32,11 @@ exports.createActivity = async (req, res, next) => {
     });
 
     const keywordsFetched = await Keyword.findAll({
-      where: { id: keywords }
+      where: { name: keywords }
     });
 
     await newActivity.setKeywords(keywordsFetched);
+    
     res.status(201).json({
       message: 'Activity created successfully!',
       activity: newActivity,
@@ -43,17 +48,20 @@ exports.createActivity = async (req, res, next) => {
     }
     next(err);
   }
-
 }
 
 
 
 exports.getFilteredOverview = async (req, res, next) => {
-  const { state, priority, keyword, areaoflife } = req.query;
+  const { state, priority, activitytype, keyword, areaoflife, searchtext } = req.query;
 
   const decodedPriority = priority ? decodeURIComponent(priority) : null;
+  const decodedActivitytype = activitytype ? decodeURIComponent(activitytype) : null;
   const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
   const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
+  const decodedSearchText = searchtext ? decodeURIComponent(searchtext) : null;
+
+
 
   try {
     let filters = {};
@@ -62,6 +70,12 @@ exports.getFilteredOverview = async (req, res, next) => {
     if (state) {
       const stateArray = state.split(',').map(s => s.toUpperCase());
       filters.currentState = stateArray;
+    }
+
+    // Search Activity Type
+    if (state) {
+      const activityTypeArray = decodedActivitytype.split(',').map(at => at.toUpperCase());
+      filters.activitytype = activityTypeArray;
     }
 
     // Search Priority
@@ -76,6 +90,13 @@ exports.getFilteredOverview = async (req, res, next) => {
         filters.priorityId = foundPriorities.map(p => p.id);
       }
     }
+
+    // Search Activity Type
+    if (activitytype) {
+      const activitytypeArray = activitytype.split(',').map(s => s.toUpperCase());
+      filters.activityType = activitytypeArray;
+    }
+
 
     // Search AreOfLife
     let foundAreaOfLifesIds = []
@@ -97,13 +118,12 @@ exports.getFilteredOverview = async (req, res, next) => {
         attributes: ['id'],
         where: {
           [Op.or]: [
-            (decodedKeyword ? {name: decodedKeyword.split(',')} : null), 
-            {areaOfLifeId: foundAreaOfLifesIds}
+            (decodedKeyword ? { name: decodedKeyword.split(',') } : null),
+            { areaOfLifeId: foundAreaOfLifesIds }
           ],
           userId: { [Op.or]: [req.userId, null] }
         }
       });
-      console.log(foundKeywords)
       if (foundKeywords) {
         const activitiesQueryKeyword = await ActivityKeyword.findAll({
           attributes: ['activityId'],
@@ -114,10 +134,34 @@ exports.getFilteredOverview = async (req, res, next) => {
       };
     };
 
+    // Search Text (title or description)
+    if (decodedSearchText) {
+      filters[Op.or] = [
+        { title: { [Op.like]: `%${decodedSearchText}%` } },
+        { description: { [Op.like]: `%${decodedSearchText}%` } }
+      ];
+    }
+
+
+    const include = [
+      {
+        model: Task,
+        required: false,
+        include: [
+          {
+            model: Step,
+            required: false,
+          }
+        ],
+      },
+    ];
 
     const activities = await Activity.findAll({
-      where: filters
+      where: filters,
+      include: decodedActivitytype === 'TASK' ? include : []
     });
+
+
 
     res.status(200).json({
       message: 'Fetched Activities successfully.',
