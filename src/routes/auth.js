@@ -31,10 +31,10 @@ router.post('/signup', [
     expValidator.body('password')
       .trim()
       .isLength({min:4, max:30}).withMessage('A senha deve ter pelo menos 8 e máximo de 30 caracteres.')
-      .matches(/\d/).withMessage('A senha deve conter pelo menos um número.')
-      .matches(/[A-Z]/).withMessage('A senha deve conter pelo menos uma letra maiúscula.')
-      .matches(/[a-z]/).withMessage('A senha deve conter pelo menos uma letra minúscula.')
-      .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('A senha deve conter pelo menos um caractere especial.')
+      // .matches(/\d/).withMessage('A senha deve conter pelo menos um número.')
+      // .matches(/[A-Z]/).withMessage('A senha deve conter pelo menos uma letra maiúscula.')
+      // .matches(/[a-z]/).withMessage('A senha deve conter pelo menos uma letra minúscula.')
+      // .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('A senha deve conter pelo menos um caractere especial.')
       .not().contains(' ').withMessage('A senha não pode conter espaços.'),
 
     expValidator.body('confirmPassword')

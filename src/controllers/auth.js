@@ -13,6 +13,7 @@ const UserLevel = require('../models/user/userLevel.js');
 
 
 exports.signup = async (req, res, next) => {
+  console.log('ACONTECEU')
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed.', 422, errors));
