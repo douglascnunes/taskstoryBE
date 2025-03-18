@@ -70,7 +70,7 @@ const User = sequelize.define('user', {
   procrastinationType: {
     type: Sequelize.ENUM(ENUM.PROCRASTINATION_TYPE),
     allowNull: false,
-    defaultValue: ENUM.PROCRASTINATION_TYPE[-1],
+    defaultValue: ENUM.PROCRASTINATION_TYPE[0],
   },
   priorityEvolutionLimite: {
     type: Sequelize.BOOLEAN,

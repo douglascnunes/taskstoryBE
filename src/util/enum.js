@@ -79,14 +79,14 @@ exports.HABIT_GOAL_TYPE = [
 ];
 
 exports.PROCRASTINATION_TYPE = [
+  'NAODEFINIDO',  // Alguns models possuem este primeiro valor como default = [0] 
   'SUPERPROCRASTINADOR',
   'PERFECCIONISTA',
   'DESORGANIZADO',
   'ANTIPROCRASTINADOR',
-  'NAODEFINIDO',  // Alguns models possuem este último valor como default = [-1]
 ];
 
 exports.USER_AREAOFLIFE_CONFIG = [
   'DESEJAVEL',
-  'MENOSREALIZADA',
+  'MAISPRATICADA',
 ];
