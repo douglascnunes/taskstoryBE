@@ -37,7 +37,6 @@ const questions = [
   ],
   [
     "Se você recebe uma tarefa com prazo curto em relação à sua complexidade, você se sentiria capaz de realizar o melhor possível?",
-    "Não faria nada",
     "Não conseguiria nem começar",
     "Tiraria de letra",
     1
