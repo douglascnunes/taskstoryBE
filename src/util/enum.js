@@ -1,5 +1,5 @@
 exports.ACTIVITY_TYPE = [
-  'ACTIVITY',  // Alguns models possuem este primeiro valor como default = [0]
+  'ACTIVITY',  // Some models have this first value as default = [0]
   'TASK',
   'PROJECT',
   'HABIT',
@@ -8,85 +8,85 @@ exports.ACTIVITY_TYPE = [
 ];
 
 exports.ACTIVITY_STATE = [
-  'REFERENCIA',  // Alguns models possuem este primeiro valor como default = [0]
-  'INCUBACAO', 
-  'AFAZER', 
-  'FAZENDO', 
-  'AGUARDANDO', 
-  'CONCLUIDA', 
-  'CONCLUIDAATRASADA', 
-  'ATRASADA', 
-  'EXCLUIDA', 
-  'PAUSADA',
-  'LIXO', 
+  'REFERENCE',  // Some models have this first value as default = [0]
+  'INCUBATION',
+  'TODO',
+  'DOING',
+  'WAITING',
+  'COMPLETED',
+  'COMPLETEDLATE',
+  'LATE',
+  'DELETED',
+  'PAUSED',
+  'TRASH',
 ];
 
 exports.IMPORTANCE_NAME = [
-  'BAIXA',
-  'MEDIA',
-  'ALTA',
+  'LOW',
+  'MEDIUM',
+  'HIGH',
 ];
 
 exports.DIFFICULTY_NAME = [
-  'BAIXA',
-  'MEDIA',
-  'ALTA',
+  'LOW',
+  'MEDIUM',
+  'HIGH',
 ];
 
 exports.PRIORITY_NAME = [
-  'MINIMA',
-  'BAIXA',
-  'MEDIA',
-  'ALTA',
-  'MAXIMA',
-  'URGENTE',
+  'MINIMAL',
+  'LOW',
+  'MEDIUM',
+  'HIGH',
+  'MAXIMUM',
+  'URGENT',
 ];
 
 exports.INSTANCE_STATE = [
-  'AFAZER',  // Alguns models possuem este primeiro valor como default = [0] 
-  'FAZENDO', 
-  'AGUARDANDO', 
-  'CONCLUIDA', 
-  'CONCLUIDAATRASADA', 
-  'ATRASADA', 
-  'EXCLUIDA', 
-  'PAUSADA',
+  'TODO',  // Some models have this first value as default = [0]
+  'DOING',
+  'WAITING',
+  'COMPLETED',
+  'COMPLETEDLATE',
+  'LATE',
+  'DELETED',
+  'PAUSED',
 ];
 
 exports.MISSION_TYPE = [
-  'AUTORREGULACAO',
-  'AUTOEFICACIA',
-  'ESPECIAL',
-  'COMUM',
+  'SELFREGULATION',
+  'SELFEFFICACY',
+  'SPECIAL',
+  'COMMON',
 ];
 
 exports.CHALLENGE_TYPE = [
-  'RASTREARATIVIDADE',
-  'RASTREARPALAVRACHAVE',
-  'RASTREARINFOGERAIS',
+  'TRACKACTIVITY',
+  'TRACKKEYWORD',
+  'TRACKGENERALINFO',
 ];
 
 exports.HABIT_NOTIFICATION_TYPE = [
-  'HORASANTES',
-  'NOLOGIN',
-  'DESLIGADO',
+  'HOURSBEFORE',
+  'ONLOGIN',
+  'OFF',
 ];
 
 exports.HABIT_GOAL_TYPE = [
-  'SEQUENCIASUCESSO',  // Validação da rota da criação de um habit usa esta posicao para verificação
-  'QUANTIDADEMINIMAPERIODO',
-  'VALORMEDIOPERIODO',
+  'SUCCESSSEQUENCE',  // Route validation for habit creation uses this position for verification
+  'MINIMUMQUANTITYPERIOD',
+  'AVERAGEVALUEPERIOD',
 ];
 
 exports.PROCRASTINATION_TYPE = [
-  'NAODEFINIDO',  // Alguns models possuem este primeiro valor como default = [0] 
-  'SUPERPROCRASTINADOR',
-  'PERFECCIONISTA',
-  'DESORGANIZADO',
-  'ANTIPROCRASTINADOR',
+  'NOTDEFINED',  // Some models have this first value as default = [0]
+  'SUPERPROCRASTINATOR',
+  'PERFECTIONIST',
+  'DISORGANIZED',
+  'ANTIPROCRASTINATOR',
 ];
 
 exports.USER_AREAOFLIFE_CONFIG = [
-  'DESEJAVEL',
-  'MAISPRATICADA',
+  'DESIRABLE',
+  'MOSTPRACTICED',
 ];

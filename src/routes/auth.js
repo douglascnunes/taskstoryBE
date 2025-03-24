@@ -5,9 +5,12 @@ const router = express.Router();
 
 const isAuth = require('../middleware/isAuth');
 
+const ENUM = require('../util/enum');
+
 const authController = require('../controllers/auth');
 
 const User = require('../models/user/user');
+const AreaOfLife = require('../models/areaOfLife/areaOfLife');
 
 
 router.post('/signup', [
@@ -63,19 +66,52 @@ router.post('/signup', [
   authController.signup);
 
 
-
 router.post('/login', [
   expValidator.body('email', 'Senha ou Email* inválido.')
+    .custom((email) => {
+      console.log(email)
+      return true
+    })
     .trim()
     .normalizeEmail()
     .isEmail(),
   expValidator.body('password', 'Senha* ou Email inválido.')
+    .custom((password) => {
+      console.log(password)
+      return true
+    })
     .trim()
     .isLength({ min: 4, max: 30 })
 ], authController.login);
 
+
 router.get('/onboarding-questions',
   authController.getOnboardingQuestions
 )
+
+
+router.patch('/onboarding', isAuth,
+  [
+    expValidator.body('accountType', 'Tipo de conta desconhecida')
+      .isString()
+      .custom((type) => ENUM.PROCRASTINATION_TYPE.includes(type)),
+
+    expValidator.body('desirable', 'Desejadas inválidas')
+      .isArray()
+      .custom(async (desirables) => {
+        const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
+        return desirables.every(desire => areaOfLifeNames.includes(desire));
+      })
+      .withMessage('Cada elemento de areaOfLife.desirable deve ser um número inteiro entre 0 e 8.'),
+
+    expValidator.body('mostPracticed', 'Mais Praticadas inválidas')
+      .isArray()
+      .custom(async (mostPracticed) => {
+        const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
+        return mostPracticed.every(practice => areaOfLifeNames.includes(practice));
+      })
+      .withMessage('Nomes das Áreas da Vida devem ser válidas.')
+  ], authController.onboarding)
+
 
 module.exports = router;

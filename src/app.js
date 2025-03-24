@@ -8,6 +8,7 @@ const activityRoutes = require('./routes/activity.js');
 const authRoutes = require('./routes/auth.js');
 const taskRoutes = require('./routes/task.js');
 const habitRoutes = require('./routes/habit.js');
+const areaOfLifeRoutes = require('./routes/areaOfLife.js');
 
 
 
@@ -40,6 +41,7 @@ app.use('/api', activityRoutes);
 app.use('/api', authRoutes);
 app.use('/api', taskRoutes)
 app.use('/api', habitRoutes);
+app.use('/api', areaOfLifeRoutes);
 
 app.use(controllerErrors);
 
