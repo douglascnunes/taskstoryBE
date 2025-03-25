@@ -36,10 +36,19 @@ exports.signup = async (req, res, next) => {
       userLevelId: userLevel1.id,
     })
 
+    const token = jwt.sign({
+      email: user.email,
+      userId: user.id.toString()
+    }, process.env.JWT_SECRET,
+      // { expireIn: '1h'}
+    );
+
     console.log(`User ${user.name} (id:${user.id}) created account.`) // CONSOLE
     res.status(201).json({
       message: 'User created successfully!',
-      userId: user.id
+      userId: user.id,
+      token: token,
+      procrastinationType: user.procrastinationType.toString(),
     });
   }
   catch (err) {
@@ -81,7 +90,8 @@ exports.login = async (req, res, next) => {
     console.log(`User ${loadedUser.name} (id:${loadedUser.id}) logged in.`) // CONSOLE
     res.status(200).json({
       token: token,
-      userId: loadedUser.id.toString()
+      userId: loadedUser.id.toString(),
+      procrastinationType: loadedUser.procrastinationType.toString(),
     }
     );
   }
