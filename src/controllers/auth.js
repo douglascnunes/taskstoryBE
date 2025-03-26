@@ -172,6 +172,10 @@ exports.onboarding = async (req, res, next) => {
 
     await transaction.commit();
 
+    res.status(201).json({
+      message: 'Onboarding registred',
+      procrastinationType: loadedUser.procrastinationType,
+    });
   }
   catch (err) {
     await transaction.rollback();
