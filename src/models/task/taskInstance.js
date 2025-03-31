@@ -15,9 +15,13 @@ const TaskInstance = sequelize.define('taskInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
+    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
     allowNull: false,
-    defaultValue: ENUM.INSTANCE_STATE[0],
+    defaultValue: ENUM.SPECIALIZATION_STATE[0],
+  },
+  completedOn: {
+    type: Sequelize.DATE,
+    allowNull: true,
   },
   finalDate: {
     type: Sequelize.DATE,

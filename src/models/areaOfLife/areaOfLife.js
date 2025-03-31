@@ -20,7 +20,9 @@ const AreaOfLife = sequelize.define('areaOfLife', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-});
+},
+  { timestamps: false }
+);
 
 
 AreaOfLife.hasMany(Keyword, { onDelete: 'CASCADE' }); // Uma AreaOfLife pode ter várias Keyword

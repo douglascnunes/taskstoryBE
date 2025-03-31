@@ -16,8 +16,10 @@ const UserLevel = sequelize.define('userLevel', {
   expRequiredToUp: {
     type: Sequelize.INTEGER,
     allowNull: false
-  }
-});
+  },
+},
+  { timestamps: false }
+);
 
 
 module.exports = UserLevel;

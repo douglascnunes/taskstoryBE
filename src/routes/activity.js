@@ -26,7 +26,8 @@ router.post('/activities', isAuth,
   activityController.createActivity);
 
 
-router.get('/activities', isAuth, activityController.getFilteredOverview);
+router.get('/activities', isAuth, activityController.getFilteredActivities);
 
+router.get('/overview', isAuth, activityController.getOverview);
 
 module.exports = router;

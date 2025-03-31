@@ -32,6 +32,8 @@ const Priority = sequelize.define('priority', {
     type: Sequelize.FLOAT,
     allowNull: false,
   }
-});
+},
+  { timestamps: false }
+);
 
 module.exports = Priority;

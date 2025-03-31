@@ -32,7 +32,7 @@ const Activity = sequelize.define('activity', {
     allowNull: false,
     defaultValue: ENUM.ACTIVITY_TYPE[0],
   },
-  currentState: {
+  activityState: {
     type: Sequelize.ENUM(ENUM.ACTIVITY_STATE),
     allowNull: false,
     defaultValue: ENUM.ACTIVITY_STATE[0],

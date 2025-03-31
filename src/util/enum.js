@@ -7,18 +7,27 @@ exports.ACTIVITY_TYPE = [
   'PLANNING',
 ];
 
+
 exports.ACTIVITY_STATE = [
   'REFERENCE',  // Some models have this first value as default = [0]
+  'SPECIALIZED',
+  'DELETED',
+  'TRASH',
+];
+
+exports.SPECIALIZATION_STATE = [
   'INCUBATION',
   'TODO',
-  'DOING',
+  'TODO_LATE',
   'WAITING',
+  'WAITING_LATE',
+  'DOING',
+  'DOING_LATE',
   'COMPLETED',
-  'COMPLETEDLATE',
-  'LATE',
-  'DELETED',
+  'COMPLETED_LATE',
   'PAUSED',
-  'TRASH',
+  'PAUSED_LATE',
+  'DELETED',
 ];
 
 exports.IMPORTANCE_NAME = [

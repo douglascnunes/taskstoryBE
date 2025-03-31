@@ -17,7 +17,9 @@ const PhaseMultiplier = sequelize.define('phaseMultiplier', {
     type: Sequelize.FLOAT,
     allowNull: false,
   },
-});
+},
+  { timestamps: false }
+);
 
 
 module.exports = PhaseMultiplier;

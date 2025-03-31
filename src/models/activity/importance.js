@@ -20,6 +20,8 @@ const Importance = sequelize.define('importance', {
     type: Sequelize.INTEGER,
     allowNull: false,
   }
-});
+},
+  { timestamps: false }
+);
 
 module.exports = Importance;

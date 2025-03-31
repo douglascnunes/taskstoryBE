@@ -5,7 +5,7 @@ const Activity = require('../activity/activity.js');
 
 const SubTask = require('./subTask.js');
 const TaskInstance = require('../task/taskInstance.js');
-
+const ENUM = require('../../util/enum.js');
 
 const Project = sequelize.define('project', {
   id: {
@@ -13,6 +13,11 @@ const Project = sequelize.define('project', {
     autoIncrement: true,
     allowNull: false,
     primaryKey: true
+  },
+  currentState: {
+    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
+    allowNull: false,
+    defaultValue: ENUM.SPECIALIZATION_STATE[0],
   },
   priorityEvolved: {
     type: Sequelize.BOOLEAN,

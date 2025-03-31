@@ -17,7 +17,9 @@ const HabitLevel = sequelize.define('habitLevel', {
     type: Sequelize.INTEGER,
     allowNull: false
   }
-});
+},
+  { timestamps: false }
+);
 
 
 module.exports = HabitLevel;

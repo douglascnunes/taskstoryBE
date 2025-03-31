@@ -15,9 +15,9 @@ const GoalInstance = sequelize.define('goalInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
+    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
     allowNull: false,
-    defaultValue: ENUM.INSTANCE_STATE[0],
+    defaultValue: ENUM.SPECIALIZATION_STATE[0],
   },
   initialDate: {
     type: Sequelize.DATE,

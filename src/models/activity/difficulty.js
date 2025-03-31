@@ -20,6 +20,8 @@ const Difficulty = sequelize.define('difficulty', {
     type: Sequelize.INTEGER,
     allowNull: false,
   }
-});
+},
+  { timestamps: false }
+);
 
 module.exports = Difficulty;

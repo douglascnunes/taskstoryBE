@@ -14,11 +14,11 @@ const Task = sequelize.define('task', {
     allowNull: false,
     primaryKey: true
   },
-  initialDate: {
+  startPeriod: {
     type: Sequelize.DATE,
     allowNull: true
   },
-  finalDate: {
+  endPeriod: {
     type: Sequelize.DATE,
     allowNull: true
   },
