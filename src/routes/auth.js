@@ -69,7 +69,6 @@ router.post('/signup', [
 router.post('/login', [
   expValidator.body('email', 'Senha ou Email* inválido.')
     .custom((email) => {
-      console.log(email)
       return true
     })
     .trim()
@@ -77,7 +76,6 @@ router.post('/login', [
     .isEmail(),
   expValidator.body('password', 'Senha* ou Email inválido.')
     .custom((password) => {
-      console.log(password)
       return true
     })
     .trim()

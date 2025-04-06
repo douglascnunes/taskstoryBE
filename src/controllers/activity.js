@@ -53,20 +53,31 @@ exports.getOverview = async (req, res, next) => {
       },
       include: [
         {
+          model: Priority,
+          required: true,
+          attributes: ['name'],
+        },
+        {
+          model: Keyword,
+          required: true,
+          attributes: ['name', 'color'],
+          through: { attributes: [] },
+        },
+        {
           model: Task,
           required: true,
           include: [
-            { model: Step, required: false },
-            {
-              model: TaskInstance,
-              required: true,
-              where: {
-                finalDate: {
-                  [Op.between]: [startdate, finaldate],
-                },
-                currentState: {
-                  [Op.in]: [
-                    ENUM.SPECIALIZATION_STATE[1], // 'TODO'
+        { model: Step, required: false },
+        {
+          model: TaskInstance,
+          required: true,
+          where: {
+            finalDate: {
+          [Op.between]: [startdate, finaldate],
+            },
+            currentState: {
+          [Op.in]: [
+            ENUM.SPECIALIZATION_STATE[1], // 'TODO'
                     ENUM.SPECIALIZATION_STATE[2], // 'TODO_LATE'
                     ENUM.SPECIALIZATION_STATE[3], // 'WAITING'
                     ENUM.SPECIALIZATION_STATE[4], // 'WAITING_LATE'
@@ -102,7 +113,9 @@ exports.getOverview = async (req, res, next) => {
 
     res.status(200).json({
       message: 'Fetched Overview Activities successfully.',
-      activities: activities
+      activities: activities,
+      startdate: startdate,
+      finaldate: finaldate,
     });
   }
   catch (err) {

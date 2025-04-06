@@ -62,7 +62,6 @@ exports.signup = async (req, res, next) => {
 
 
 exports.login = async (req, res, next) => {
-  console.log(req.email)
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed.', 422, errors));
@@ -87,7 +86,7 @@ exports.login = async (req, res, next) => {
     }, process.env.JWT_SECRET,
       // { expireIn: '1h'}
     );
-    console.log(`User ${loadedUser.name} (id:${loadedUser.id}) logged in.`) // CONSOLE
+    console.log(`User < ${loadedUser.name} > (id:${loadedUser.id}) logged in.`)
     res.status(200).json({
       token: token,
       userId: loadedUser.id.toString(),

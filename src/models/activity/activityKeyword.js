@@ -9,7 +9,9 @@ const ActivityKeyword = sequelize.define('activityKeyword', {
     allowNull: false,
     primaryKey: true
   },
-});
+},
+  { timestamps: false }
+);
 
 
 module.exports = ActivityKeyword;

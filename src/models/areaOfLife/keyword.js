@@ -17,7 +17,9 @@ const Keyword = sequelize.define('keyword', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-});
+},
+  { timestamps: false }
+);
 
 
 module.exports = Keyword;
