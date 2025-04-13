@@ -1,10 +1,8 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const GamificationComponent = require('./gamificationComponent.js');
-// const MedalTierList = require('./medalTierList.js');
-
+import GamificationComponent from './gamificationComponent.js';
+// import MedalTierList from './medalTierList.js';
 
 const Medal = sequelize.define('medal', {
   id: {
@@ -15,10 +13,7 @@ const Medal = sequelize.define('medal', {
   },
 });
 
-
 GamificationComponent.hasMany(Medal, { onDelete: 'CASCADE' });
 Medal.belongsTo(GamificationComponent);
 
-
-
-module.exports = Medal;
+export default Medal;

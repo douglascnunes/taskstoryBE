@@ -1,22 +1,19 @@
-const express = require('express');
-const cors = require('cors');
-const sequelize = require('./util/db.js');
+import express from 'express';
+import cors from 'cors';
+import sequelize from './util/db.js';
 
-const controllerErrors = require('./middleware/catchControllerErrors.js')
+import controllerErrors from './middleware/catchControllerErrors.js';
 
-const activityRoutes = require('./routes/activity.js');
-const authRoutes = require('./routes/auth.js');
-const taskRoutes = require('./routes/task.js');
-const habitRoutes = require('./routes/habit.js');
-const areaOfLifeRoutes = require('./routes/areaOfLife.js');
-
-
+import activityRoutes from './routes/activity.js';
+import authRoutes from './routes/auth.js';
+import taskRoutes from './routes/task.js';
+import habitRoutes from './routes/habit.js';
+import areaOfLifeRoutes from './routes/areaOfLife.js';
 
 const app = express();
 
 app.use(express.json());
-app.use(express.urlencoded({extended: true}));
-
+app.use(express.urlencoded({ extended: true }));
 
 app.use(
   cors({
@@ -33,29 +30,19 @@ app.use((req, res, next) => {
   next();
 });
 
-
-
-
-
 app.use('/api', activityRoutes);
 app.use('/api', authRoutes);
-app.use('/api', taskRoutes)
+app.use('/api', taskRoutes);
 app.use('/api', habitRoutes);
 app.use('/api', areaOfLifeRoutes);
 
 app.use(controllerErrors);
 
-
-
-
-
-
-
-sequelize.authenticate().then(function(){
-  console.log("Connected successfully!")
-}).catch(function(erro){
-  console.log("Failed to connect: "+erro)
-})
+sequelize.authenticate().then(function () {
+  console.log("Connected successfully!");
+}).catch(function (erro) {
+  console.log("Failed to connect: " + erro);
+});
 
 app.listen(process.env.PORT || 3000, () => {
   console.log(`Server online on port ${process.env.PORT || 3000}`);

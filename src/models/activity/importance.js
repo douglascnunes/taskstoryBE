@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const ENUM = require('../../util/enum.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import { IMPORTANCE_NAME } from '../../util/enum.js';
 
 const Importance = sequelize.define('importance', {
   id: {
@@ -13,7 +10,7 @@ const Importance = sequelize.define('importance', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.ENUM(ENUM.IMPORTANCE_NAME),
+    type: Sequelize.ENUM(IMPORTANCE_NAME),
     allowNull: false,
   },
   weight: {
@@ -24,4 +21,4 @@ const Importance = sequelize.define('importance', {
   { timestamps: false }
 );
 
-module.exports = Importance;
+export default Importance;

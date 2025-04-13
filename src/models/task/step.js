@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const Step = sequelize.define('step', {
   id: {
@@ -15,5 +14,4 @@ const Step = sequelize.define('step', {
   }
 });
 
-
-module.exports = Step;
+export default Step;

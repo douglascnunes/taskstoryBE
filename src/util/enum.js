@@ -1,4 +1,4 @@
-exports.ACTIVITY_TYPE = [
+export const ACTIVITY_TYPE = [
   'ACTIVITY',  // Some models have this first value as default = [0]
   'TASK',
   'PROJECT',
@@ -7,15 +7,14 @@ exports.ACTIVITY_TYPE = [
   'PLANNING',
 ];
 
-
-exports.ACTIVITY_STATE = [
+export const ACTIVITY_STATE = [
   'REFERENCE',  // Some models have this first value as default = [0]
   'SPECIALIZED',
   'DELETED',
   'TRASH',
 ];
 
-exports.SPECIALIZATION_STATE = [
+export const SPECIALIZATION_STATE = [
   'INCUBATION',
   'TODO',
   'TODO_LATE',
@@ -30,19 +29,19 @@ exports.SPECIALIZATION_STATE = [
   'DELETED',
 ];
 
-exports.IMPORTANCE_NAME = [
+export const IMPORTANCE_NAME = [
   'LOW',
   'MEDIUM',
   'HIGH',
 ];
 
-exports.DIFFICULTY_NAME = [
+export const DIFFICULTY_NAME = [
   'LOW',
   'MEDIUM',
   'HIGH',
 ];
 
-exports.PRIORITY_NAME = [
+export const PRIORITY_NAME = [
   'MINIMAL',
   'LOW',
   'MEDIUM',
@@ -51,7 +50,7 @@ exports.PRIORITY_NAME = [
   'URGENT',
 ];
 
-exports.INSTANCE_STATE = [
+export const INSTANCE_STATE = [
   'TODO',  // Some models have this first value as default = [0]
   'DOING',
   'WAITING',
@@ -62,32 +61,32 @@ exports.INSTANCE_STATE = [
   'PAUSED',
 ];
 
-exports.MISSION_TYPE = [
+export const MISSION_TYPE = [
   'SELFREGULATION',
   'SELFEFFICACY',
   'SPECIAL',
   'COMMON',
 ];
 
-exports.CHALLENGE_TYPE = [
+export const CHALLENGE_TYPE = [
   'TRACKACTIVITY',
   'TRACKKEYWORD',
   'TRACKGENERALINFO',
 ];
 
-exports.HABIT_NOTIFICATION_TYPE = [
+export const HABIT_NOTIFICATION_TYPE = [
   'HOURSBEFORE',
   'ONLOGIN',
   'OFF',
 ];
 
-exports.HABIT_GOAL_TYPE = [
+export const HABIT_GOAL_TYPE = [
   'SUCCESSSEQUENCE',  // Route validation for habit creation uses this position for verification
   'MINIMUMQUANTITYPERIOD',
   'AVERAGEVALUEPERIOD',
 ];
 
-exports.PROCRASTINATION_TYPE = [
+export const PROCRASTINATION_TYPE = [
   'NOTDEFINED',  // Some models have this first value as default = [0]
   'SUPERPROCRASTINATOR',
   'PERFECTIONIST',
@@ -95,7 +94,7 @@ exports.PROCRASTINATION_TYPE = [
   'ANTIPROCRASTINATOR',
 ];
 
-exports.USER_AREAOFLIFE_CONFIG = [
+export const USER_AREAOFLIFE_CONFIG = [
   'DESIRABLE',
   'MOSTPRACTICED',
 ];

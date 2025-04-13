@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const HabitPhase = sequelize.define('habitPhase', {
   id: {
@@ -35,5 +34,4 @@ const HabitPhase = sequelize.define('habitPhase', {
   }
 });
 
-
-module.exports = HabitPhase;
+export default HabitPhase;

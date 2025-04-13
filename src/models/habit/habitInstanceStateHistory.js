@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const ENUM = require('../../util/enum.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import { INSTANCE_STATE } from '../../util/enum.js';
 
 const HabitInstanceStateHistory = sequelize.define('habitInstanceStateHistory', {
   id: {
@@ -13,9 +10,9 @@ const HabitInstanceStateHistory = sequelize.define('habitInstanceStateHistory', 
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
+    type: Sequelize.ENUM(INSTANCE_STATE),
     allowNull: false,
   },
 });
 
-module.exports = HabitInstanceStateHistory;
+export default HabitInstanceStateHistory;

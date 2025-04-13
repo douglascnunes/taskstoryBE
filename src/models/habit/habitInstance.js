@@ -1,11 +1,8 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const HabitInstanceStateHistory = require('./habitInstanceStateHistory.js')
-
-const ENUM = require('../../util/enum.js');
-
+import HabitInstanceStateHistory from './habitInstanceStateHistory.js';
+import { SPECIALIZATION_STATE } from '../../util/enum.js';
 
 const HabitInstance = sequelize.define('habitInstance', {
   id: {
@@ -15,9 +12,9 @@ const HabitInstance = sequelize.define('habitInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
+    type: Sequelize.ENUM(SPECIALIZATION_STATE),
     allowNull: false,
-    defaultValue: ENUM.SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATE[0],
   },
   finalDate: {
     type: Sequelize.DATE,
@@ -37,9 +34,7 @@ const HabitInstance = sequelize.define('habitInstance', {
   }
 });
 
-
 HabitInstance.hasMany(HabitInstanceStateHistory, { onDelete: 'CASCADE' });
-HabitInstanceStateHistory.belongsTo(HabitInstance, {allowNull: false });
+HabitInstanceStateHistory.belongsTo(HabitInstance, { allowNull: false });
 
-
-module.exports = HabitInstance;
+export default HabitInstance;

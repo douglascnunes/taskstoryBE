@@ -1,9 +1,7 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const Keyword = require('./keyword.js');
-
+import Keyword from './keyword.js';
 
 const AreaOfLife = sequelize.define('areaOfLife', {
   id: {
@@ -24,11 +22,9 @@ const AreaOfLife = sequelize.define('areaOfLife', {
   { timestamps: false }
 );
 
-
 AreaOfLife.hasMany(Keyword, { onDelete: 'CASCADE' }); // Uma AreaOfLife pode ter várias Keyword
 Keyword.belongsTo(AreaOfLife, { onDelete: 'CASCADE' }); // Cada Keyword pertence a uma AreaOfLife
 
 AreaOfLife.belongsTo(Keyword, { foreignKey: 'defaultKeywordId', onDelete: 'CASCADE', allowNull: true });
 
-
-module.exports = AreaOfLife;
+export default AreaOfLife;

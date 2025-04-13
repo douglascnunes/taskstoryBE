@@ -1,23 +1,21 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
+import Activity from '../activity/activity.js';
+import Keyword from '../areaOfLife/keyword.js';
+import AreaOfLife from '../areaOfLife/areaOfLife.js';
+import UserAreaOfLifeConfig from './userAreaofLifeConfig.js';
 
-const Activity = require('../activity/activity.js');
-const Keyword = require('../areaOfLife/keyword.js');
-const AreaOfLife = require('../areaOfLife/areaOfLife.js');
-const UserAreaOfLifeConfig = require('./userAreaofLifeConfig.js');
+import UserSessionDay from './userSessionDay.js';
+import LifeGoal from './lifeGoal.js';
+import UserLevel from './userLevel.js';
 
-const UserSessionDay = require('./userSessionDay.js');
-const LifeGoal = require('./lifeGoal.js');
-const UserLevel = require('./userLevel.js');
+import Item from '../gamification/item.js';
+import Inventory from './userInventory.js';
+import GamificationComponent from '../gamification/gamificationComponent.js';
+import UserGamiComponent from './userGamiComponent.js';
 
-const Item = require('../gamification/item.js');
-const Inventory = require('./userInventory.js');
-const GamificationComponent = require('../gamification/gamificationComponent.js');
-const UserGamiComponent = require('./userGamiComponent.js');
-
-const ENUM = require('../../util/enum.js');
-
+import { PROCRASTINATION_TYPE } from '../../util/enum.js';
 
 const User = sequelize.define('user', {
   id: {
@@ -51,7 +49,7 @@ const User = sequelize.define('user', {
     type: Sequelize.INTEGER,
     allowNull: false,
     defaultValue: 0,
-  }, 
+  },
   selfRegulationPoints: {
     type: Sequelize.FLOAT,
     allowNull: false,
@@ -68,9 +66,9 @@ const User = sequelize.define('user', {
     defaultValue: new Date,
   },
   procrastinationType: {
-    type: Sequelize.ENUM(ENUM.PROCRASTINATION_TYPE),
+    type: Sequelize.ENUM(PROCRASTINATION_TYPE),
     allowNull: false,
-    defaultValue: ENUM.PROCRASTINATION_TYPE[0],
+    defaultValue: PROCRASTINATION_TYPE[0],
   },
   priorityEvolutionLimite: {
     type: Sequelize.BOOLEAN,
@@ -109,7 +107,6 @@ const User = sequelize.define('user', {
   },
 });
 
-
 User.hasMany(UserSessionDay, { onDelete: 'CASCADE' });
 UserSessionDay.belongsTo(User);
 
@@ -134,5 +131,4 @@ Item.belongsToMany(User, { through: Inventory, onDelete: 'CASCADE' });
 User.belongsToMany(GamificationComponent, { through: UserGamiComponent, onDelete: 'CASCADE' });
 GamificationComponent.belongsToMany(User, { through: UserGamiComponent, onDelete: 'CASCADE' });
 
-
-module.exports = User;
+export default User;

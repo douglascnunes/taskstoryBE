@@ -1,11 +1,8 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const GoalInstanceStateHistory = require('./goalInstanceStateHistory.js')
-
-const ENUM = require('../../util/enum.js');
-
+import GoalInstanceStateHistory from './goalInstanceStateHistory.js';
+import { SPECIALIZATION_STATE } from '../../util/enum.js';
 
 const GoalInstance = sequelize.define('goalInstance', {
   id: {
@@ -15,9 +12,9 @@ const GoalInstance = sequelize.define('goalInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
+    type: Sequelize.ENUM(SPECIALIZATION_STATE),
     allowNull: false,
-    defaultValue: ENUM.SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATE[0],
   },
   initialDate: {
     type: Sequelize.DATE,
@@ -38,9 +35,7 @@ const GoalInstance = sequelize.define('goalInstance', {
   }
 });
 
-
 GoalInstance.hasMany(GoalInstanceStateHistory, { onDelete: 'CASCADE' });
 GoalInstanceStateHistory.belongsTo(GoalInstance);
 
-
-module.exports = GoalInstance;
+export default GoalInstance;

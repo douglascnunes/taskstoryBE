@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const ActivityKeyword = sequelize.define('activityKeyword', {
   id: {
@@ -9,9 +8,8 @@ const ActivityKeyword = sequelize.define('activityKeyword', {
     allowNull: false,
     primaryKey: true
   },
-},
+}, 
   { timestamps: false }
 );
 
-
-module.exports = ActivityKeyword;
+export default ActivityKeyword;

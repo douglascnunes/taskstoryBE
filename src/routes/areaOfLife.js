@@ -1,9 +1,8 @@
-const express = require('express');
-
-const areaOfLifeController = require('../controllers/areaOfLife');
+import express from 'express';
+import { getAllAreasOfLife } from '../controllers/areaOfLife.js';
 
 const router = express.Router();
 
-router.get('/areasoflife', areaOfLifeController.getAllAreasOfLife)
+router.get('/areasoflife', getAllAreasOfLife);
 
-module.exports = router;
+export default router;

@@ -1,11 +1,9 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-const Activity = require('../activity/activity.js');
-
-const Step = require('./step.js');
-const TaskInstance = require('./taskInstance.js');
-
+import Activity from '../activity/activity.js';
+import Step from './step.js';
+import TaskInstance from './taskInstance.js';
 
 const Task = sequelize.define('task', {
   id: {
@@ -41,15 +39,13 @@ const Task = sequelize.define('task', {
   },
 });
 
+Activity.hasOne(Task, { onDelete: 'CASCADE' });
+Task.belongsTo(Activity, { allowNull: false });
 
-Activity.hasOne(Task, {onDelete: 'CASCADE'});
-Task.belongsTo(Activity, {allowNull: false});
+Task.hasMany(Step, { onDelete: 'CASCADE' });
+Step.belongsTo(Task, { allowNull: false });
 
-Task.hasMany(Step, {onDelete: 'CASCADE'});
-Step.belongsTo(Task, {allowNull: false});
+Task.hasMany(TaskInstance, { allowNull: false, onDelete: 'CASCADE' });
+TaskInstance.belongsTo(Task, { allowNull: false });
 
-Task.hasMany(TaskInstance, {allowNull: false, onDelete: 'CASCADE'});
-TaskInstance.belongsTo(Task, {allowNull: false});
-
-
-module.exports = Task;
+export default Task;

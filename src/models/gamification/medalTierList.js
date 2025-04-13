@@ -1,8 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const Medal = require('./medal.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import Medal from './medal.js';
 
 
 const MedalTierList = sequelize.define('medalTierList', {
@@ -14,7 +12,6 @@ const MedalTierList = sequelize.define('medalTierList', {
   },
 });
 
-
 MedalTierList.belongsTo(Medal, { foreignKey: 'bronze' });
 MedalTierList.belongsTo(Medal, { foreignKey: 'prata' });
 MedalTierList.belongsTo(Medal, { foreignKey: 'ouro' });
@@ -25,5 +22,4 @@ MedalTierList.belongsTo(Medal, { foreignKey: 'diamante' });
 
 Medal.belongsTo(MedalTierList);
 
-
-module.exports = MedalTierList;
+export default MedalTierList;

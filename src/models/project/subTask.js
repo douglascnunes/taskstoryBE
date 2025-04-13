@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const SubTask = sequelize.define('subTask', {
   id: {
@@ -15,5 +14,4 @@ const SubTask = sequelize.define('subTask', {
   }
 });
 
-
-module.exports = SubTask;
+export default SubTask;

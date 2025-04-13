@@ -1,25 +1,21 @@
-const express = require('express');
-const expValidator = require('express-validator');
+import express from 'express';
+import { body } from 'express-validator';
+
+import isAuth from '../middleware/isAuth.js';
+import {PROCRASTINATION_TYPE} from '../util/enum.js';
+import * as authController from '../controllers/auth.js';
+import User from '../models/user/user.js';
+import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
 
 const router = express.Router();
 
-const isAuth = require('../middleware/isAuth');
-
-const ENUM = require('../util/enum');
-
-const authController = require('../controllers/auth');
-
-const User = require('../models/user/user');
-const AreaOfLife = require('../models/areaOfLife/areaOfLife');
-
-
 router.post('/signup', [
-  expValidator.body('name')
+  body('name')
     .trim()
     .isLength({ min: 3, max: 20 }).withMessage('O nome de usuário deve ter entre 3 e 30 caracteres.')
     .matches(/^[a-zA-Z0-9_]+$/).withMessage('O nome de usuário só pode conter letras, números e underlines.'),
 
-  expValidator.body('email')
+  body('email')
     .trim()
     .normalizeEmail()
     .isEmail().withMessage('Por favor, insira um e-mail válido.')
@@ -33,7 +29,7 @@ router.post('/signup', [
       return true;
     }),
 
-  expValidator.body('password')
+  body('password')
     .trim()
     .isLength({ min: 4, max: 30 }).withMessage('A senha deve ter pelo menos 8 e máximo de 30 caracteres.')
     // .matches(/\d/).withMessage('A senha deve conter pelo menos um número.')
@@ -42,7 +38,7 @@ router.post('/signup', [
     // .matches(/[!@#$%^&*(),.?":{}|<>]/).withMessage('A senha deve conter pelo menos um caractere especial.')
     .not().contains(' ').withMessage('A senha não pode conter espaços.'),
 
-  expValidator.body('confirmPassword')
+  body('confirmPassword')
     .trim()
     .custom((value, { req }) => {
       if (value !== req.body.password) {
@@ -51,7 +47,7 @@ router.post('/signup', [
       return true;
     }),
 
-  expValidator.body('birthdate')
+  body('birthdate')
     .isDate({ format: 'YYYY-MM-DD' }).withMessage('A data de nascimento deve estar no formato YYYY-MM-DD.')
   // .custom((value) => {
   //   const today = new Date();
@@ -65,51 +61,44 @@ router.post('/signup', [
 ],
   authController.signup);
 
-
 router.post('/login', [
-  expValidator.body('email', 'Senha ou Email* inválido.')
+  body('email', 'Senha ou Email* inválido.')
     .custom((email) => {
-      return true
+      return true;
     })
     .trim()
     .normalizeEmail()
     .isEmail(),
-  expValidator.body('password', 'Senha* ou Email inválido.')
+  body('password', 'Senha* ou Email inválido.')
     .custom((password) => {
-      return true
+      return true;
     })
     .trim()
-    .isLength({ min: 4, max: 30 })
+    .isLength({ min: 4, max: 30 }),
 ], authController.login);
 
+router.get('/onboarding-questions', authController.getOnboardingQuestions);
 
-router.get('/onboarding-questions',
-  authController.getOnboardingQuestions
-)
+router.patch('/onboarding', isAuth, [
+  body('accountType', 'Tipo de conta desconhecida')
+    .isString()
+    .custom((type) => PROCRASTINATION_TYPE.includes(type)),
 
+  body('desirable', 'Desejadas inválidas')
+    .isArray()
+    .custom(async (desirables) => {
+      const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
+      return desirables.every(desire => areaOfLifeNames.includes(desire));
+    })
+    .withMessage('Cada elemento de areaOfLife.desirable deve ser um número inteiro entre 0 e 8.'),
 
-router.patch('/onboarding', isAuth,
-  [
-    expValidator.body('accountType', 'Tipo de conta desconhecida')
-      .isString()
-      .custom((type) => ENUM.PROCRASTINATION_TYPE.includes(type)),
+  body('mostPracticed', 'Mais Praticadas inválidas')
+    .isArray()
+    .custom(async (mostPracticed) => {
+      const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
+      return mostPracticed.every(practice => areaOfLifeNames.includes(practice));
+    })
+    .withMessage('Nomes das Áreas da Vida devem ser válidas.'),
+], authController.onboarding);
 
-    expValidator.body('desirable', 'Desejadas inválidas')
-      .isArray()
-      .custom(async (desirables) => {
-        const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
-        return desirables.every(desire => areaOfLifeNames.includes(desire));
-      })
-      .withMessage('Cada elemento de areaOfLife.desirable deve ser um número inteiro entre 0 e 8.'),
-
-    expValidator.body('mostPracticed', 'Mais Praticadas inválidas')
-      .isArray()
-      .custom(async (mostPracticed) => {
-        const areaOfLifeNames = await AreaOfLife.findAll({ attributes: ['name'] });
-        return mostPracticed.every(practice => areaOfLifeNames.includes(practice));
-      })
-      .withMessage('Nomes das Áreas da Vida devem ser válidas.')
-  ], authController.onboarding)
-
-
-module.exports = router;
+export default router;

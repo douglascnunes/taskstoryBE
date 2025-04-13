@@ -1,11 +1,9 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-const Activity = require('../activity/activity.js');
-
-const Challenge = require('./challenge.js');
-const GoalInstance = require('./goalInstance.js');
-
+import Activity from '../activity/activity.js';
+import Challenge from './challenge.js';
+import GoalInstance from './goalInstance.js';
 
 const Goal = sequelize.define('goal', {
   id: {
@@ -28,15 +26,13 @@ const Goal = sequelize.define('goal', {
   },
 });
 
+Activity.hasOne(Goal, { onDelete: 'CASCADE' });
+Goal.belongsTo(Activity, { allowNull: false });
 
-Activity.hasOne(Goal, {onDelete: 'CASCADE'});
-Goal.belongsTo(Activity, {allowNull: false});
+Goal.hasMany(Challenge, { onDelete: 'CASCADE' });
+Challenge.belongsTo(Goal, { allowNull: false });
 
-Goal.hasMany(Challenge, {onDelete: 'CASCADE'});
-Challenge.belongsTo(Goal, {allowNull: false});
+Goal.hasMany(GoalInstance, { allowNull: false, onDelete: 'CASCADE' });
+GoalInstance.belongsTo(Goal, { allowNull: false });
 
-Goal.hasMany(GoalInstance, {allowNull: false, onDelete: 'CASCADE'});
-GoalInstance.belongsTo(Goal, {allowNull: false});
-
-
-module.exports = Goal;
+export default Goal;

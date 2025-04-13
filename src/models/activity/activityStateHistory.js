@@ -1,7 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
-
-const ENUM = require('../../util/enum');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import { ACTIVITY_TYPE } from '../../util/enum.js';
 
 const ActivityStateHistory = sequelize.define('activityStateHistory', {
   id: {
@@ -11,9 +10,9 @@ const ActivityStateHistory = sequelize.define('activityStateHistory', {
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(ENUM.ACTIVITY_TYPE),
+    type: Sequelize.ENUM(ACTIVITY_TYPE),
     allowNull: false,
   },
 });
 
-module.exports = ActivityStateHistory;
+export default ActivityStateHistory;

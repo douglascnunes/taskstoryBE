@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const ENUM = require('../../util/enum.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import { PRIORITY_NAME } from '../../util/enum.js';
 
 const Priority = sequelize.define('priority', {
   id: {
@@ -13,7 +10,7 @@ const Priority = sequelize.define('priority', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.ENUM(ENUM.PRIORITY_NAME),
+    type: Sequelize.ENUM(PRIORITY_NAME),
     allowNull: false,
   },
   pointsMultiplier: {
@@ -36,4 +33,4 @@ const Priority = sequelize.define('priority', {
   { timestamps: false }
 );
 
-module.exports = Priority;
+export default Priority;

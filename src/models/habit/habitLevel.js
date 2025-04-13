@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const HabitLevel = sequelize.define('habitLevel', {
   id: {
@@ -17,9 +16,8 @@ const HabitLevel = sequelize.define('habitLevel', {
     type: Sequelize.INTEGER,
     allowNull: false
   }
-},
+}, 
   { timestamps: false }
 );
 
-
-module.exports = HabitLevel;
+export default HabitLevel;

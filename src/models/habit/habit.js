@@ -1,17 +1,13 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const Activity = require('../activity/activity.js');
-
-const HabitLevel = require('./habitLevel.js');
-const PhaseMultiplier = require('./phaseMultiplier.js');
-const HabitPhaseMultiplier = require('./habitPhaseMultiplier.js');
-const HabitPhase = require('./habitPhase.js');
-const HabitInstance = require('./habitInstance.js');
-
-const ENUM = require('../../util/enum.js');
-
+import Activity from '../activity/activity.js';
+import HabitLevel from './habitLevel.js';
+import PhaseMultiplier from './phaseMultiplier.js';
+import HabitPhaseMultiplier from './habitPhaseMultiplier.js';
+import HabitPhase from './habitPhase.js';
+import HabitInstance from './habitInstance.js';
+import { HABIT_NOTIFICATION_TYPE, HABIT_GOAL_TYPE } from '../../util/enum.js';
 
 const Habit = sequelize.define('habit', {
   id: {
@@ -21,10 +17,10 @@ const Habit = sequelize.define('habit', {
     primaryKey: true
   },
   notificationType: {
-    type: Sequelize.ENUM(ENUM.HABIT_NOTIFICATION_TYPE),
-  allowNull: true,
+    type: Sequelize.ENUM(HABIT_NOTIFICATION_TYPE),
+    allowNull: true,
   },
-  notificationHours : {
+  notificationHours: {
     type: Sequelize.INTEGER,
     allowNull: true,
   },
@@ -37,8 +33,8 @@ const Habit = sequelize.define('habit', {
     allowNull: true,
   },
   goalType: {
-    type: Sequelize.ENUM(ENUM.HABIT_GOAL_TYPE),
-  allowNull: false,
+    type: Sequelize.ENUM(HABIT_GOAL_TYPE),
+    allowNull: false,
   },
   goalDescription: {
     type: Sequelize.STRING,
@@ -53,24 +49,22 @@ const Habit = sequelize.define('habit', {
   },
 });
 
+Activity.hasOne(Habit, { onDelete: 'CASCADE' });
+Habit.belongsTo(Activity, { allowNull: false });
 
-Activity.hasOne(Habit, {onDelete: 'CASCADE'});
-Habit.belongsTo(Activity, {allowNull: false});
+Habit.belongsTo(HabitLevel, { foreignKey: 'currentLevel' });
+HabitLevel.hasMany(Habit, { foreignKey: 'currentLevel' });
 
-Habit.belongsTo(HabitLevel, { foreignKey: 'currentLevel'});
-HabitLevel.hasMany(Habit, { foreignKey: 'currentLevel'});
-
-Habit.belongsTo(HabitPhase, { foreignKey: 'currentPhase', allowNull: true});
-HabitPhase.hasMany(Habit, { foreignKey: 'currentPhase'});
+Habit.belongsTo(HabitPhase, { foreignKey: 'currentPhase', allowNull: true });
+HabitPhase.hasMany(Habit, { foreignKey: 'currentPhase' });
 
 Habit.belongsToMany(PhaseMultiplier, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });
 PhaseMultiplier.belongsToMany(Habit, { through: HabitPhaseMultiplier, onDelete: 'CASCADE' });
 
-Habit.hasMany(HabitPhase, {onDelete: 'CASCADE'});
-HabitPhase.belongsTo(Habit, {allowNull: false });
+Habit.hasMany(HabitPhase, { onDelete: 'CASCADE' });
+HabitPhase.belongsTo(Habit, { allowNull: false });
 
-Habit.hasMany(HabitInstance, {allowNull: false, onDelete: 'CASCADE'});
-HabitInstance.belongsTo(Habit, {allowNull: false});
+Habit.hasMany(HabitInstance, { allowNull: false, onDelete: 'CASCADE' });
+HabitInstance.belongsTo(Habit, { allowNull: false });
 
-
-module.exports = Habit;
+export default Habit;

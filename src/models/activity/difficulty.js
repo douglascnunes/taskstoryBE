@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const ENUM = require('../../util/enum.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import { DIFFICULTY_NAME } from '../../util/enum.js';
 
 const Difficulty = sequelize.define('difficulty', {
   id: {
@@ -13,7 +10,7 @@ const Difficulty = sequelize.define('difficulty', {
     primaryKey: true
   },
   name: {
-    type: Sequelize.ENUM(ENUM.DIFFICULTY_NAME),
+    type: Sequelize.ENUM(DIFFICULTY_NAME),
     allowNull: false,
   },
   weight: {
@@ -24,4 +21,4 @@ const Difficulty = sequelize.define('difficulty', {
   { timestamps: false }
 );
 
-module.exports = Difficulty;
+export default Difficulty;

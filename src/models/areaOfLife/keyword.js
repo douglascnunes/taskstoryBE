@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const Keyword = sequelize.define('keyword', {
   id: {
@@ -21,5 +20,4 @@ const Keyword = sequelize.define('keyword', {
   { timestamps: false }
 );
 
-
-module.exports = Keyword;
+export default Keyword;

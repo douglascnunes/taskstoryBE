@@ -1,16 +1,16 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+
+import ActivityStateHistory from './activityStateHistory.js';
+import Difficulty from './difficulty.js';
+import Importance from './importance.js';
+import Priority from './priority.js';
+import Dependency from './dependency.js';
+import Keyword from '../areaOfLife/keyword.js';
+import ActivityKeyword from './activityKeyword.js';
 
 
-const ActivityStateHistory = require('./activityStateHistory.js');
-const Difficulty = require('./difficulty.js')
-const Importance = require('./importance.js')
-const Priority = require('./priority.js')
-const Dependency = require('./dependency.js');
-const Keyword = require('../areaOfLife/keyword.js');
-const ActivityKeyword = require('./activityKeyword.js');
-
-const ENUM = require('../../util/enum.js');
+import { ACTIVITY_TYPE, ACTIVITY_STATE } from '../../util/enum.js';
 
 
 const Activity = sequelize.define('activity', {
@@ -28,28 +28,27 @@ const Activity = sequelize.define('activity', {
     type: Sequelize.STRING,
   },
   activityType: {
-    type: Sequelize.ENUM(ENUM.ACTIVITY_TYPE),
+    type: Sequelize.ENUM(ACTIVITY_TYPE),
     allowNull: false,
-    defaultValue: ENUM.ACTIVITY_TYPE[0],
+    defaultValue: ACTIVITY_TYPE[0],
   },
   activityState: {
-    type: Sequelize.ENUM(ENUM.ACTIVITY_STATE),
+    type: Sequelize.ENUM(ACTIVITY_STATE),
     allowNull: false,
-    defaultValue: ENUM.ACTIVITY_STATE[0],
+    defaultValue: ACTIVITY_STATE[0],
   }
 });
-
 
 Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
 ActivityStateHistory.belongsTo(Activity);
 
-Activity.belongsTo(Importance, {allowNull: true });
+Activity.belongsTo(Importance, { allowNull: true });
 Importance.hasMany(Activity);
 
-Activity.belongsTo(Difficulty, {allowNull: true });
+Activity.belongsTo(Difficulty, { allowNull: true });
 Difficulty.hasMany(Activity);
 
-Activity.belongsTo(Priority, {allowNull: true });
+Activity.belongsTo(Priority, { allowNull: true });
 Priority.hasMany(Activity);
 
 Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
@@ -61,5 +60,4 @@ Dependency.belongsTo(Activity, { foreignKey: 'requiredActivityId' });
 Activity.belongsToMany(Keyword, { through: ActivityKeyword });
 Keyword.belongsToMany(Activity, { through: ActivityKeyword });
 
-
-module.exports = Activity;
+export default Activity;

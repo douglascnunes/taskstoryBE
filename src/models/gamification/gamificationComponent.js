@@ -1,12 +1,9 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db');
-const Requirement = require('./requirement');
-
-
-const GamiCompRequirement = require('./gamiCompReq');
-const Item = require('./item');
-const ItemReward = require('./ItemReward');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import Requirement from './requirement.js';
+import GamiCompRequirement from './gamiCompReq.js';
+import Item from './item.js';
+import ItemReward from './ItemReward.js';
 
 const GamificationComponent = sequelize.define('gamificationComponent', {
   id: {
@@ -44,12 +41,10 @@ const GamificationComponent = sequelize.define('gamificationComponent', {
   },
 });
 
-
 GamificationComponent.belongsToMany(Requirement, { through: GamiCompRequirement });
 Requirement.belongsToMany(GamificationComponent, { through: GamiCompRequirement });
 
 GamificationComponent.belongsToMany(Item, { through: ItemReward });
 Item.belongsToMany(GamificationComponent, { through: ItemReward });
 
-
-module.exports = GamificationComponent;
+export default GamificationComponent;

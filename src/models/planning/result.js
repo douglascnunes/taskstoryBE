@@ -1,8 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-const Activity = require('../activity/activity.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import Activity from '../activity/activity.js';
 
 const Result = sequelize.define('result', {
   id: {
@@ -25,8 +23,6 @@ const Result = sequelize.define('result', {
   }
 });
 
+Result.belongsTo(Activity, { foreignKey: 'trackedActivityId', allowNull: true });
 
-Result.belongsTo(Activity, { foreignKey: 'trackedActivityId', allowNull: true});
-
-
-module.exports = Result;
+export default Result;

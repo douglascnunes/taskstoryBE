@@ -1,11 +1,9 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const Keyword = require('../areaOfLife/keyword.js');
-const Planning = require('../planning/planning.js');
-const LifeGoalKeyword = require('./lifeGoalKeyword.js');
-
+import Keyword from '../areaOfLife/keyword.js';
+import Planning from '../planning/planning.js';
+import LifeGoalKeyword from './lifeGoalKeyword.js';
 
 const LifeGoal = sequelize.define('lifeGoal', {
   id: {
@@ -24,11 +22,9 @@ const LifeGoal = sequelize.define('lifeGoal', {
   }
 });
 
-
 LifeGoal.belongsToMany(Keyword, { through: LifeGoalKeyword });
 Keyword.belongsToMany(LifeGoal, { through: LifeGoalKeyword });
 
 LifeGoal.belongsTo(Planning, { foreignKey: 'trackedPlanningId', allowNull: true });
 
-
-module.exports = LifeGoal;
+export default LifeGoal;

@@ -1,30 +1,28 @@
-const { Op } = require('sequelize');
+import { Op } from 'sequelize';
+import { validationResult as expValidatorRes } from 'express-validator';
 
-const expValidatorRes = require('express-validator').validationResult;
+import { controllerErrorObj } from '../util/error.js';
+import { ACTIVITY_TYPE, SPECIALIZATION_STATE } from '../util/enum.js';
 
-const errorHelper = require('../util/error.js');
-
-const ENUM = require('../util/enum.js');
-
-const Activity = require('../models/activity/activity.js');
-const AreaOfLife = require('../models/areaOfLife/areaOfLife.js');
-const Keyword = require('../models/areaOfLife/keyword.js');
-const Priority = require('../models/activity/priority.js');
-const ActivityKeyword = require('../models/activity/activityKeyword.js');
-const Task = require('../models/task/task.js');
-const Step = require('../models/task/step.js');
-const Habit = require('../models/habit/habit.js');
-const HabitLevel = require('../models/habit/habitLevel.js');
-const HabitPhase = require('../models/habit/habitPhase.js');
-const TaskInstance = require('../models/task/taskInstance.js');
-const Goal = require('../models/goal/goal.js');
-const Challenge = require('../models/goal/challenge.js');
-const GoalInstance = require('../models/goal/goalInstance.js');
-
+import Activity from '../models/activity/activity.js';
+import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
+import Keyword from '../models/areaOfLife/keyword.js';
+import Priority from '../models/activity/priority.js';
+import ActivityKeyword from '../models/activity/activityKeyword.js';
+import Task from '../models/task/task.js';
+import Step from '../models/task/step.js';
+import Habit from '../models/habit/habit.js';
+import HabitLevel from '../models/habit/habitLevel.js';
+import HabitPhase from '../models/habit/habitPhase.js';
+import TaskInstance from '../models/task/taskInstance.js';
+import Goal from '../models/goal/goal.js';
+import Challenge from '../models/goal/challenge.js';
+import GoalInstance from '../models/goal/goalInstance.js';
+import Difficulty from '../models/activity/difficulty.js';
+import Importance from '../models/activity/importance.js';
 
 
-exports.getOverview = async (req, res, next) => {
-
+export const getOverview = async (req, res, next) => {
   try {
     // Pega os valores das query strings e faz a decodificação
     let { startdate, finaldate } = req.query;
@@ -49,7 +47,7 @@ exports.getOverview = async (req, res, next) => {
     const activities = await Activity.findAll({
       where: {
         userId: req.userId,
-        activityType: ENUM.ACTIVITY_TYPE[1], //'SPECIALIZED'
+        activityType: ACTIVITY_TYPE[1], //'SPECIALIZED'
       },
       include: [
         {
@@ -67,24 +65,24 @@ exports.getOverview = async (req, res, next) => {
           model: Task,
           required: true,
           include: [
-        { model: Step, required: false },
-        {
-          model: TaskInstance,
-          required: true,
-          where: {
-            finalDate: {
-          [Op.between]: [startdate, finaldate],
-            },
-            currentState: {
-          [Op.in]: [
-            ENUM.SPECIALIZATION_STATE[1], // 'TODO'
-                    ENUM.SPECIALIZATION_STATE[2], // 'TODO_LATE'
-                    ENUM.SPECIALIZATION_STATE[3], // 'WAITING'
-                    ENUM.SPECIALIZATION_STATE[4], // 'WAITING_LATE'
-                    ENUM.SPECIALIZATION_STATE[5], // 'DOING'
-                    ENUM.SPECIALIZATION_STATE[6], // 'DOING_LATE'
-                    ENUM.SPECIALIZATION_STATE[7], // 'COMPLETED'
-                    ENUM.SPECIALIZATION_STATE[8], // 'COMPLETED_LATE'
+            { model: Step, required: false },
+            {
+              model: TaskInstance,
+              required: true,
+              where: {
+                finalDate: {
+                  [Op.between]: [startdate, finaldate],
+                },
+                currentState: {
+                  [Op.in]: [
+                    SPECIALIZATION_STATE[1], // 'TODO'
+                    SPECIALIZATION_STATE[2], // 'TODO_LATE'
+                    SPECIALIZATION_STATE[3], // 'WAITING'
+                    SPECIALIZATION_STATE[4], // 'WAITING_LATE'
+                    SPECIALIZATION_STATE[5], // 'DOING'
+                    SPECIALIZATION_STATE[6], // 'DOING_LATE'
+                    SPECIALIZATION_STATE[7], // 'COMPLETED'
+                    SPECIALIZATION_STATE[8], // 'COMPLETED_LATE'
                   ],
                 },
               },
@@ -126,8 +124,7 @@ exports.getOverview = async (req, res, next) => {
   }
 };
 
-
-exports.getFilteredActivities = async (req, res, next) => {
+export const getFilteredActivities = async (req, res, next) => {
   const { state, priority, activitytype, keyword, areaoflife, searchtext } = req.query;
 
   const decodedPriority = priority ? decodeURIComponent(priority) : null;
@@ -135,8 +132,6 @@ exports.getFilteredActivities = async (req, res, next) => {
   const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
   const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
   const decodedSearchText = searchtext ? decodeURIComponent(searchtext) : null;
-
-
 
   try {
     let filters = {};
@@ -171,7 +166,6 @@ exports.getFilteredActivities = async (req, res, next) => {
       const activitytypeArray = activitytype.split(',').map(s => s.toUpperCase());
       filters.activityType = activitytypeArray;
     }
-
 
     // Search AreOfLife
     let foundAreaOfLifesIds = []
@@ -217,7 +211,6 @@ exports.getFilteredActivities = async (req, res, next) => {
       ];
     }
 
-
     const include = [
       {
         model: Task,
@@ -262,8 +255,6 @@ exports.getFilteredActivities = async (req, res, next) => {
       ]
     });
 
-
-
     res.status(200).json({
       message: 'Fetched Activities successfully.',
       activities: activities
@@ -277,11 +268,10 @@ exports.getFilteredActivities = async (req, res, next) => {
   }
 };
 
-
-exports.createActivity = async (req, res, next) => {
+export const createActivity = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
-    return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+    return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
 
   const {
@@ -314,4 +304,94 @@ exports.createActivity = async (req, res, next) => {
     }
     next(err);
   }
-}
+};
+
+
+export const updateActivity = async (req, res, next) => {
+  const errors = expValidatorRes(req);
+  if (!errors.isEmpty()) {
+    return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+  }
+
+  const {
+    activityId,
+    title,
+    description,
+    keywords,
+    importance,
+    difficulty,
+  } = req.body;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const updatedActivity = await Activity.findOne({
+      where: {
+        id: activityId,
+        userId: req.userId,
+      },
+    });
+
+    if (!updatedActivity || updatedActivity.activityState === 'SPECIALIZED') {
+      return res.status(404).json({ message: 'Activity not found.' });
+    };
+
+    const updatedFields = {};
+    if (title !== undefined) updatedFields.title = title;
+    if (description !== undefined) updatedFields.description = description;
+
+    await updatedActivity.update(
+      updatedFields,
+      { transaction }
+    );
+
+
+    if (keywords) {
+      const keywordsFetched = await Keyword.findAll({
+        where: { name: keywords }
+      });
+      await updatedActivity.setKeywords(
+        keywordsFetched,
+        { transaction }
+      );
+    }
+
+
+    if (importance) {
+      const importanceFetched = await Importance.findOne({
+        where: { name: importance }
+      });
+      await updatedActivity.setImportance(
+        importanceFetched,
+        { transaction }
+      );
+    };
+
+
+    if (difficulty) {
+      const difficultyFetched = await Difficulty.findOne({
+        where: { name: difficulty }
+      });
+      await updatedActivity.setDifficulty(
+        difficultyFetched,
+        { transaction }
+      );
+    };
+
+    await transaction.commit();
+
+    res.status(201).json({
+      message: 'Activity updated successfully!',
+      activity: updatedActivity,
+    });
+  }
+  catch (err) {
+    await transaction.rollback();
+
+    if (!err.statusCode) {
+      err.message = 'Updated Activity failed',
+      err.statusCode = 500;
+    }
+    next(err);
+  }
+};

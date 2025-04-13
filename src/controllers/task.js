@@ -1,17 +1,13 @@
-const sequelize = require('../util/db.js');
-const errorHelper = require('../util/error.js');
+import sequelize from '../util/db.js';
+import * as errorHelper from '../util/error.js';
+import { validationResult as expValidatorRes } from 'express-validator';
 
-const expValidatorRes = require('express-validator').validationResult;
+import Activity from '../models/activity/activity.js';
+import Keyword from '../models/areaOfLife/keyword.js';
+import Task from '../models/task/task.js';
+import Step from '../models/task/step.js';
 
-
-const Activity = require('../models/activity/activity.js');
-const Keyword = require('../models/areaOfLife/keyword.js');
-
-const Task = require('../models/task/task.js');
-const Step = require('../models/task/step.js');
-
-
-exports.createTask = async (req, res, next) => {
+export const createTask = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -27,7 +23,6 @@ exports.createTask = async (req, res, next) => {
     frequenceWeeklyDays,
     steps,
   } = req.body;
-
 
   const transaction = await sequelize.transaction();
 
@@ -64,9 +59,8 @@ exports.createTask = async (req, res, next) => {
       }
     }
 
-
     const keywordsFetched = await Keyword.findAll({
-      where: { name: keywords }
+      where: { name: keywords },
     });
 
     await newActivity.setKeywords(keywordsFetched, { transaction });

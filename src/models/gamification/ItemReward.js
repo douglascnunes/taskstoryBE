@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const ItemReward = sequelize.define('itemReward', {
   id: {
@@ -15,4 +14,4 @@ const ItemReward = sequelize.define('itemReward', {
   }
 });
 
-module.exports = ItemReward;
+export default ItemReward;

@@ -1,6 +1,6 @@
-const AreaOfLife = require("../models/areaOfLife/areaOfLife");
+import AreaOfLife from "../models/areaOfLife/areaOfLife.js";
 
-exports.getAllAreasOfLife = async (req, res, next) => {
+export const getAllAreasOfLife = async (req, res, next) => {
   try {
     const areasOfLife = await AreaOfLife.findAll();
     res.status(200).json({

@@ -1,10 +1,7 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const GamificationComponent = require('./gamificationComponent.js');
-
-const ENUM = require('../../util/enum.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import GamificationComponent from './gamificationComponent.js';
+import { MISSION_TYPE } from '../../util/enum.js';
 
 
 const Mission = sequelize.define('mission', {
@@ -15,7 +12,7 @@ const Mission = sequelize.define('mission', {
     primaryKey: true
   },
   category: {
-    type: Sequelize.ENUM(ENUM.MISSION_TYPE),
+    type: Sequelize.ENUM(MISSION_TYPE),
     allowNull: false,
   },
   unlockLevel: {
@@ -24,9 +21,7 @@ const Mission = sequelize.define('mission', {
   }
 });
 
-
 GamificationComponent.hasOne(Mission, { onDelete: 'CASCADE' });
-Mission.belongsTo(GamificationComponent, {allowNull: false});
+Mission.belongsTo(GamificationComponent, { allowNull: false });
 
-
-module.exports = Mission;
+export default Mission;

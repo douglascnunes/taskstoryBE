@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const ENUM = require('../../util/enum.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import {INSTANCE_STATE } from '../../util/enum.js';
 
 const GoalInstanceStateHistory = sequelize.define('goalInstanceStateHistory', {
   id: {
@@ -13,9 +10,9 @@ const GoalInstanceStateHistory = sequelize.define('goalInstanceStateHistory', {
     primaryKey: true
   },
   state: {
-    type: Sequelize.ENUM(ENUM.INSTANCE_STATE),
+    type: Sequelize.ENUM(INSTANCE_STATE),
     allowNull: false,
   },
 });
 
-module.exports = GoalInstanceStateHistory;
+export default GoalInstanceStateHistory;

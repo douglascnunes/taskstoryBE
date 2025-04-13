@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const GamiCompReq = sequelize.define('gamiCompReq', {
   id: {
@@ -11,5 +10,4 @@ const GamiCompReq = sequelize.define('gamiCompReq', {
   },
 });
 
-
-module.exports = GamiCompReq;
+export default GamiCompReq;

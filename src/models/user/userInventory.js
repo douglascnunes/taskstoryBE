@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const Inventory = sequelize.define('inventory', {
   id: {
@@ -23,5 +22,4 @@ const Inventory = sequelize.define('inventory', {
   }
 });
 
-
-module.exports = Inventory;
+export default Inventory;

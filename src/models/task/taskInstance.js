@@ -1,11 +1,8 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const TaskInstanceStateHistory = require('./taskStateHistory.js')
-
-const ENUM = require('../../util/enum.js');
-
+import TaskInstanceStateHistory from './taskStateHistory.js';
+import {SPECIALIZATION_STATE} from '../../util/enum.js';
 
 const TaskInstance = sequelize.define('taskInstance', {
   id: {
@@ -15,9 +12,9 @@ const TaskInstance = sequelize.define('taskInstance', {
     primaryKey: true
   },
   currentState: {
-    type: Sequelize.ENUM(ENUM.SPECIALIZATION_STATE),
+    type: Sequelize.ENUM(SPECIALIZATION_STATE),
     allowNull: false,
-    defaultValue: ENUM.SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATE[0],
   },
   completedOn: {
     type: Sequelize.DATE,
@@ -38,9 +35,7 @@ const TaskInstance = sequelize.define('taskInstance', {
   }
 });
 
-
 TaskInstance.hasMany(TaskInstanceStateHistory, { onDelete: 'CASCADE' });
 TaskInstanceStateHistory.belongsTo(TaskInstance);
 
-
-module.exports = TaskInstance;
+export default TaskInstance;

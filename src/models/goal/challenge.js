@@ -1,12 +1,10 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-const Activity = require('../activity/activity.js');
-const Keyword = require('../areaOfLife/keyword.js');
+import Activity from '../activity/activity.js';
+import Keyword from '../areaOfLife/keyword.js';
+import { CHALLENGE_TYPE } from '../../util/enum.js';
 // const GeneralInformation = require('../');
-
-const ENUM = require('../../util/enum.js');
-
 
 const Challenge = sequelize.define('challenge', {
   id: {
@@ -16,8 +14,8 @@ const Challenge = sequelize.define('challenge', {
     primaryKey: true
   },
   type: {
-    type: Sequelize.ENUM(ENUM.CHALLENGE_TYPE),
-  allowNull: false,
+    type: Sequelize.ENUM(CHALLENGE_TYPE),
+    allowNull: false,
   },
   goalValue: {
     type: Sequelize.INTEGER,
@@ -29,9 +27,7 @@ const Challenge = sequelize.define('challenge', {
   }
 });
 
-Challenge.belongsTo(Activity, {foreignKey: 'trackedActivityId', allowNull: true});
-Challenge.belongsTo(Keyword, {foreignKey: 'trackedKeywordId', allowNull: true});
-// Challenge.hasOne(GeneralInformation, {allowNull: true});
+Challenge.belongsTo(Activity, { foreignKey: 'trackedActivityId', allowNull: true });
+Challenge.belongsTo(Keyword, { foreignKey: 'trackedKeywordId', allowNull: true });
 
-
-module.exports = Challenge;
+export default Challenge;

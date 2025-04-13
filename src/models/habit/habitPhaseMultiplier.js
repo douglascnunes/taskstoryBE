@@ -1,6 +1,5 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
 const HabitPhaseMultiplier = sequelize.define('habitPhaseMultiplier', {
   id: {
@@ -11,5 +10,4 @@ const HabitPhaseMultiplier = sequelize.define('habitPhaseMultiplier', {
   },
 });
 
-
-module.exports = HabitPhaseMultiplier;
+export default HabitPhaseMultiplier;

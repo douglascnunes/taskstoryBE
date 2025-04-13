@@ -1,49 +1,39 @@
-const express = require('express');
-const expValidator = require('express-validator');
+import express from 'express';
+import { body } from 'express-validator';
+
+import isAuth from '../middleware/isAuth.js';
+import * as taskController from '../controllers/task.js';
 
 const router = express.Router();
 
-const isAuth = require('../middleware/isAuth');
-
-const taskController = require('../controllers/task');
-
-
 router.post('/tasks', isAuth,
   [
-    expValidator.body('title')
+    body('title')
       .trim()
       .notEmpty().withMessage('Title cannot be empty.')
       .isLength({ min: 3, max: 100 }).withMessage('Title must be between 3 and 100 characters.'),
-
-    expValidator.body('description')
+    body('description')
       .optional()
       .trim()
       .isLength({ max: 255 }).withMessage('Description cannot exceed 255 characters.'),
-
-    expValidator.body('keywords')
+    body('keywords')
       .isArray({ min: 1 }).withMessage('Must select at least 1 keyword.'),
-
-    expValidator.body('initialDate')
+    body('initialDate')
       .optional()
       .isDate(),
-
-    expValidator.body('finalDate')
+    body('finalDate')
       .optional()
       .isDate(),
-
-    expValidator.body('frequenceIntervalDays')
+    body('frequenceIntervalDays')
       .optional()
       .isInt(),
-
-    expValidator.body('frequenceWeeklyDays')
+    body('frequenceWeeklyDays')
       .optional()
       .isString(),
-
-    expValidator.body('steps')
+    body('steps')
       .optional()
       .isArray(),
-
-    expValidator.body()
+    body()
       .custom((value, { req }) => {
         const frequenceIntervalDays = req.body.frequenceIntervalDays;
         const frequenceWeeklyDays = req.body.frequenceWeeklyDays;
@@ -54,8 +44,7 @@ router.post('/tasks', isAuth,
         return true;
       }),
   ],
-  taskController.createTask);
+  taskController.createTask
+);
 
-
-
-module.exports = router;
+export default router;

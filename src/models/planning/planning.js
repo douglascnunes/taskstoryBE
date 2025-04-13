@@ -1,11 +1,8 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
 
-
-const Activity = require('../activity/activity.js');
-
-const Result = require('./result.js')
-
+import Activity from '../activity/activity.js';
+import Result from './result.js';
 
 const Planning = sequelize.define('planning', {
   id: {
@@ -16,12 +13,10 @@ const Planning = sequelize.define('planning', {
   },
 });
 
-
 Activity.hasOne(Planning, { onDelete: 'CASCADE' });
 Planning.belongsTo(Activity, { allowNull: false });
 
 Planning.hasMany(Result, { onDelete: 'CASCADE' });
 Result.belongsTo(Planning);
 
-
-module.exports = Planning;
+export default Planning;

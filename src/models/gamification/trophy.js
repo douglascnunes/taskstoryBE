@@ -1,9 +1,6 @@
-const Sequelize = require('sequelize');
-const sequelize = require('../../util/db.js');
-
-
-const GamificationComponent = require('./gamificationComponent.js');
-
+import Sequelize from 'sequelize';
+import sequelize from '../../util/db.js';
+import GamificationComponent from './gamificationComponent.js';
 
 const Trophy = sequelize.define('trophy', {
   id: {
@@ -14,9 +11,7 @@ const Trophy = sequelize.define('trophy', {
   },
 });
 
-
 GamificationComponent.hasOne(Trophy, { onDelete: 'CASCADE' });
-Trophy.belongsTo(GamificationComponent, {allowNull: false});
+Trophy.belongsTo(GamificationComponent, { allowNull: false });
 
-
-module.exports = Trophy;
+export default Trophy;

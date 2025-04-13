@@ -1,21 +1,18 @@
-const sequelize = require('../util/db.js');
-const errorHelper = require('../util/error.js');
+import sequelize from '../util/db.js';
+import { controllerErrorObj } from '../util/error.js';
+import { validationResult as expValidatorRes } from 'express-validator';
 
-const expValidatorRes = require('express-validator').validationResult;
+import Activity from '../models/activity/activity.js';
+import Keyword from '../models/areaOfLife/keyword.js';
 
+import Habit from '../models/habit/habit.js';
+import HabitLevel from '../models/habit/habitLevel.js';
+import HabitPhase from '../models/habit/habitPhase.js';
 
-const Activity = require('../models/activity/activity.js');
-const Keyword = require('../models/areaOfLife/keyword.js');
-
-const Habit = require('../models/habit/habit.js');
-const HabitLevel = require('../models/habit/habitLevel.js');
-const HabitPhase = require('../models/habit/habitPhase.js');
-
-
-exports.createHabit = async (req, res, next) => {
+export const createHabit = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
-    return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+    return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
 
   const {
@@ -32,7 +29,6 @@ exports.createHabit = async (req, res, next) => {
     goalValueF,
   } = req.body;
 
-
   const transaction = await sequelize.transaction();
 
   try {
@@ -44,9 +40,9 @@ exports.createHabit = async (req, res, next) => {
       },
       { transaction }
     );
- 
-    const habitLevel_1 = await HabitLevel.findOne({where: {id: 1}})
-    
+
+    const habitLevel_1 = await HabitLevel.findOne({ where: { id: 1 } });
+
     const newHabit = await Habit.create(
       {
         activityId: newActivity.id,
@@ -58,20 +54,20 @@ exports.createHabit = async (req, res, next) => {
         goalDescription: goalDescription,
         currentExp: 0,
         currentLevel: habitLevel_1.id,
-        currentPhase: null
+        currentPhase: null,
       },
       { transaction }
     );
-    
+
     const newHabitPhase = await HabitPhase.create(
       {
         phaseLevel: 1,
         goalValueI: goalValueI,
         goalValueF: goalValueF || null,
-        habitId: newHabit.id
+        habitId: newHabit.id,
       },
       { transaction }
-    )
+    );
 
     await newHabit.update(
       { currentPhase: newHabitPhase.id },
@@ -79,7 +75,7 @@ exports.createHabit = async (req, res, next) => {
     );
 
     const keywordsFetched = await Keyword.findAll({
-      where: { name: keywords }
+      where: { name: keywords },
     });
 
     await newActivity.setKeywords(keywordsFetched, { transaction });
@@ -90,7 +86,6 @@ exports.createHabit = async (req, res, next) => {
       message: 'Habit created successfully',
       task: newHabit,
     });
-
   } catch (error) {
     await transaction.rollback();
 
