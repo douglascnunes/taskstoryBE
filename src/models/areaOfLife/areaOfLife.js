@@ -14,8 +14,8 @@ const AreaOfLife = sequelize.define('areaOfLife', {
     type: Sequelize.STRING,
     allowNull: false,
   },
-  color: {
-    type: Sequelize.STRING,
+  colorAngle: {
+    type: Sequelize.INTEGER,
     allowNull: false,
   },
 },

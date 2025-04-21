@@ -6,6 +6,8 @@ import Activity from '../models/activity/activity.js';
 import Keyword from '../models/areaOfLife/keyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
+import { ACTIVITY_STATE, ACTIVITY_TYPE } from '../util/enum.js';
+
 
 export const createTask = async (req, res, next) => {
   const errors = expValidatorRes(req);
@@ -17,8 +19,10 @@ export const createTask = async (req, res, next) => {
     title,
     description,
     keywords,
-    initialDate,
-    finalDate,
+    difficulty,
+    importance,
+    startPeriod,
+    endPeriod,
     frequenceIntervalDays,
     frequenceWeeklyDays,
     steps,
@@ -27,20 +31,34 @@ export const createTask = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const newActivity = await Activity.create(
-      {
-        title: title,
-        description: description,
-        activityType: 'TASK',
-      },
+    const newActivity = await Activity.create({
+      title: title,
+      description: description,
+      importance: importance,
+      difficulty: difficulty,
+      activityType: ACTIVITY_TYPE[1], // TASK
+      activityState: ACTIVITY_STATE[1], // SPECIALIZED
+      userId: req.userId
+    },
       { transaction }
     );
 
+    const keywordsFetched = await Keyword.findAll({
+      where: {
+        id: keywords,
+        userId: {
+          [Op.or]: [req.userId, null]
+        }
+      }
+    });
+    await updatedActivity.setKeywords(keywordsFetched, { transaction });
+
+  
     const newTask = await Task.create(
       {
         activityId: newActivity.id,
-        initialDate: initialDate,
-        finalDate: finalDate,
+        startPeriod: startPeriod,
+        endPeriod: endPeriod,
         frequenceIntervalDays: frequenceIntervalDays,
         frequenceWeeklyDays: frequenceWeeklyDays,
       },
@@ -58,12 +76,6 @@ export const createTask = async (req, res, next) => {
         await newTask.addStep(step, { transaction });
       }
     }
-
-    const keywordsFetched = await Keyword.findAll({
-      where: { name: keywords },
-    });
-
-    await newActivity.setKeywords(keywordsFetched, { transaction });
 
     await transaction.commit();
 

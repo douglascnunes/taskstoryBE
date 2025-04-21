@@ -29,26 +29,38 @@ export const SPECIALIZATION_STATE = [
   'DELETED',
 ];
 
-export const IMPORTANCE_NAME = [
+export const IMPORTANCE_NAMES = [
   'LOW',
   'MEDIUM',
   'HIGH',
 ];
 
-export const DIFFICULTY_NAME = [
+export const IMPORTANCE_VALUES = {
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3,
+};
+
+export const DIFFICULTY_NAMES = [
   'LOW',
   'MEDIUM',
   'HIGH',
 ];
 
-export const PRIORITY_NAME = [
-  'MINIMAL',
-  'LOW',
-  'MEDIUM',
-  'HIGH',
-  'MAXIMUM',
-  'URGENT',
-];
+export const DIFFICULTY_VALUES = {
+  LOW: 1,
+  MEDIUM: 2,
+  HIGH: 3,
+};
+
+export const PRIORITY_VALUES = {
+  MINIMAL: [1, 1.5],
+  LOW: [1.5, 2],
+  MEDIUM: [2, 2.5],
+  HIGH: [2.5, 3],
+  MAXIMUM: [3, 3.5],
+  URGENT: [999, 999],
+};
 
 export const INSTANCE_STATE = [
   'TODO',  // Some models have this first value as default = [0]

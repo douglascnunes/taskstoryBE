@@ -2,15 +2,12 @@ import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
 import ActivityStateHistory from './activityStateHistory.js';
-import Difficulty from './difficulty.js';
-import Importance from './importance.js';
-import Priority from './priority.js';
 import Dependency from './dependency.js';
 import Keyword from '../areaOfLife/keyword.js';
 import ActivityKeyword from './activityKeyword.js';
 
 
-import { ACTIVITY_TYPE, ACTIVITY_STATE } from '../../util/enum.js';
+import { ACTIVITY_TYPE, ACTIVITY_STATE, IMPORTANCE_NAMES, DIFFICULTY_NAMES } from '../../util/enum.js';
 
 
 const Activity = sequelize.define('activity', {
@@ -36,20 +33,19 @@ const Activity = sequelize.define('activity', {
     type: Sequelize.ENUM(ACTIVITY_STATE),
     allowNull: false,
     defaultValue: ACTIVITY_STATE[0],
-  }
+  },
+  importance: {
+    type: Sequelize.ENUM(IMPORTANCE_NAMES),
+    allowNull: false,
+  },
+  difficulty: {
+    type: Sequelize.ENUM(DIFFICULTY_NAMES),
+    allowNull: false,
+  },
 });
 
 Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
 ActivityStateHistory.belongsTo(Activity);
-
-Activity.belongsTo(Importance, { allowNull: true });
-Importance.hasMany(Activity);
-
-Activity.belongsTo(Difficulty, { allowNull: true });
-Difficulty.hasMany(Activity);
-
-Activity.belongsTo(Priority, { allowNull: true });
-Priority.hasMany(Activity);
 
 Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
 Dependency.belongsTo(Activity, { foreignKey: 'dependentActivityId' });

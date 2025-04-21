@@ -3,7 +3,7 @@ import { body } from 'express-validator';
 
 import isAuth from '../middleware/isAuth.js';
 import * as activityController from '../controllers/activity.js';
-import { IMPORTANCE_NAME } from '../util/enum.js';
+import { DIFFICULTY_NAMES, IMPORTANCE_NAMES } from '../util/enum.js';
 
 const router = express.Router();
 
@@ -29,7 +29,7 @@ router.post('/activities', isAuth,
     body('importance')
       .isString()
       .custom((value) => {
-        if (!IMPORTANCE_NAME.includes(value)) {
+        if (!IMPORTANCE_NAMES.includes(value)) {
           throw new Error('Invalid importance value.');
         }
         return true;
@@ -38,7 +38,7 @@ router.post('/activities', isAuth,
     body('difficulty')
       .isString()
       .custom((value) => {
-        if (!IMPORTANCE_NAME.includes(value)) {
+        if (!DIFFICULTY_NAMES.includes(value)) {
           throw new Error('Invalid difficulty value.');
         }
         return true;
@@ -68,7 +68,6 @@ router.patch('/activities', isAuth,
     next();
   },
 
-
   [
     body('activityId')
       .notEmpty().withMessage('Activity ID cannot be empty.')
@@ -92,7 +91,7 @@ router.patch('/activities', isAuth,
       .optional()
       .isString()
       .custom((value) => {
-        if (!IMPORTANCE_NAME.includes(value)) {
+        if (!IMPORTANCE_NAMES.includes(value)) {
           throw new Error('Invalid importance value.');
         }
         return true;
@@ -102,7 +101,7 @@ router.patch('/activities', isAuth,
       .optional()
       .isString()
       .custom((value) => {
-        if (!IMPORTANCE_NAME.includes(value)) {
+        if (!DIFFICULTY_NAMES.includes(value)) {
           throw new Error('Invalid difficulty value.');
         }
         return true;

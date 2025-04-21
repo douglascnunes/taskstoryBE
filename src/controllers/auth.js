@@ -37,7 +37,7 @@ export const signup = async (req, res, next) => {
       userId: user.id.toString()
     }, process.env.JWT_SECRET);
 
-    console.log(`User ${user.name} (id:${user.id}) created account.`); // CONSOLE
+    console.log(`[SIGNUP] User ${user.name} (id:${user.id}) created account.`); // CONSOLE
     res.status(201).json({
       message: 'User created successfully!',
       userId: user.id,
@@ -76,7 +76,7 @@ export const login = async (req, res, next) => {
       userId: loadedUser.id.toString()
     }, process.env.JWT_SECRET);
 
-    console.log(`User < ${loadedUser.name} > (id:${loadedUser.id}) logged in.`);
+    console.log(`[LOGIN] User < ${loadedUser.name} > (id:${loadedUser.id}) logged in.`);
     res.status(200).json({
       token: token,
       userId: loadedUser.id.toString(),

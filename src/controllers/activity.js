@@ -1,13 +1,13 @@
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 import { validationResult as expValidatorRes } from 'express-validator';
 
+import sequelize from '../util/db.js';
 import { controllerErrorObj } from '../util/error.js';
-import { ACTIVITY_TYPE, SPECIALIZATION_STATE } from '../util/enum.js';
+import { ACTIVITY_TYPE, PRIORITY_VALUES, SPECIALIZATION_STATE } from '../util/enum.js';
 
 import Activity from '../models/activity/activity.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
 import Keyword from '../models/areaOfLife/keyword.js';
-import Priority from '../models/activity/priority.js';
 import ActivityKeyword from '../models/activity/activityKeyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
@@ -18,8 +18,6 @@ import TaskInstance from '../models/task/taskInstance.js';
 import Goal from '../models/goal/goal.js';
 import Challenge from '../models/goal/challenge.js';
 import GoalInstance from '../models/goal/goalInstance.js';
-import Difficulty from '../models/activity/difficulty.js';
-import Importance from '../models/activity/importance.js';
 
 
 export const getOverview = async (req, res, next) => {
@@ -51,14 +49,9 @@ export const getOverview = async (req, res, next) => {
       },
       include: [
         {
-          model: Priority,
-          required: true,
-          attributes: ['name'],
-        },
-        {
           model: Keyword,
           required: true,
-          attributes: ['name', 'color'],
+          attributes: ['name', 'colorAngle'],
           through: { attributes: [] },
         },
         {
@@ -125,13 +118,14 @@ export const getOverview = async (req, res, next) => {
 };
 
 export const getFilteredActivities = async (req, res, next) => {
-  const { state, priority, activitytype, keyword, areaoflife, searchtext } = req.query;
+  const { state, activitytype, keyword, areaoflife, searchtext, priority } = req.query;
 
-  const decodedPriority = priority ? decodeURIComponent(priority) : null;
   const decodedActivitytype = activitytype ? decodeURIComponent(activitytype) : null;
   const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
   const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
   const decodedSearchText = searchtext ? decodeURIComponent(searchtext) : null;
+  const decodedPriority = priority ? decodeURIComponent(priority) : null;
+
 
   try {
     let filters = {};
@@ -148,18 +142,6 @@ export const getFilteredActivities = async (req, res, next) => {
       filters.activitytype = activityTypeArray;
     }
 
-    // Search Priority
-    if (decodedPriority) {
-      const foundPriorities = await Priority.findAll({
-        attributes: ['id'],
-        where: {
-          name: decodedPriority.split(',').map(s => s.toUpperCase())
-        }
-      });
-      if (foundPriorities) {
-        filters.priorityId = foundPriorities.map(p => p.id);
-      }
-    }
 
     // Search Activity Type
     if (activitytype) {
@@ -180,6 +162,8 @@ export const getFilteredActivities = async (req, res, next) => {
         foundAreaOfLifesIds = foundAreaOfLifes.map(p => p.id);
       };
     };
+
+
 
     // Search Keyword
     if (decodedKeyword || decodedAreaOfLife) {
@@ -211,18 +195,13 @@ export const getFilteredActivities = async (req, res, next) => {
       ];
     }
 
-    const include = [
-      {
-        model: Task,
-        required: false,
-        include: [
-          {
-            model: Step,
-            required: false,
-          }
-        ],
-      },
-    ];
+    if (decodedPriority && PRIORITY_VALUES[decodedPriority]) {
+      const [min, max] = PRIORITY_VALUES[decodedPriority];
+      filters[Op.and] = [
+        ...filters[Op.and] || [],
+        Sequelize.literal(`(importance + difficulty) / 2 >= ${min} AND (importance + difficulty) / 2 < ${max}`)
+      ];
+    };
 
     const activities = await Activity.findAll({
       where: filters,
@@ -268,37 +247,55 @@ export const getFilteredActivities = async (req, res, next) => {
   }
 };
 
+
 export const createActivity = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
-  }
+  };
 
   const {
     title,
     description,
     keywords,
+    difficulty,
+    importance,
   } = req.body;
+
+  const transaction = await sequelize.transaction();
 
   try {
     const newActivity = await Activity.create({
       title: title,
       description: description,
+      importance: importance,
+      difficulty: difficulty,
       userId: req.userId
-    });
+    },
+      { transaction }
+    );
 
     const keywordsFetched = await Keyword.findAll({
-      where: { name: keywords }
+      where: {
+        id: keywords,
+        userId: {
+          [Op.or]: [req.userId, null]
+        }
+      }
     });
+    await newActivity.setKeywords(keywordsFetched, { transaction });
 
-    await newActivity.setKeywords(keywordsFetched);
+    await transaction.commit();
 
+    console.log('[CREATE ACTIVITY] title:' + newActivity.title + ', desc:' + newActivity.description)
     res.status(201).json({
       message: 'Activity created successfully!',
       activity: newActivity,
     });
   }
   catch (err) {
+    await transaction.rollback();
+
     if (!err.statusCode) {
       err.statusCode = 500;
     }
@@ -337,8 +334,14 @@ export const updateActivity = async (req, res, next) => {
     };
 
     const updatedFields = {};
-    if (title !== undefined) updatedFields.title = title;
-    if (description !== undefined) updatedFields.description = description;
+
+    if (title) updatedFields.title = title;
+
+    if (description) updatedFields.description = description;
+
+    if (importance) updatedFields.importance = importance;
+
+    if (difficulty) updatedFields.difficulty = difficulty;
 
     await updatedActivity.update(
       updatedFields,
@@ -346,37 +349,15 @@ export const updateActivity = async (req, res, next) => {
     );
 
 
-    if (keywords) {
-      const keywordsFetched = await Keyword.findAll({
-        where: { name: keywords }
-      });
-      await updatedActivity.setKeywords(
-        keywordsFetched,
-        { transaction }
-      );
-    }
-
-
-    if (importance) {
-      const importanceFetched = await Importance.findOne({
-        where: { name: importance }
-      });
-      await updatedActivity.setImportance(
-        importanceFetched,
-        { transaction }
-      );
-    };
-
-
-    if (difficulty) {
-      const difficultyFetched = await Difficulty.findOne({
-        where: { name: difficulty }
-      });
-      await updatedActivity.setDifficulty(
-        difficultyFetched,
-        { transaction }
-      );
-    };
+    const keywordsFetched = await Keyword.findAll({
+      where: {
+        id: keywords,
+        userId: {
+          [Op.or]: [req.userId, null]
+        }
+      }
+    });
+    await updatedActivity.setKeywords(keywordsFetched, { transaction });
 
     await transaction.commit();
 
@@ -390,7 +371,7 @@ export const updateActivity = async (req, res, next) => {
 
     if (!err.statusCode) {
       err.message = 'Updated Activity failed',
-      err.statusCode = 500;
+        err.statusCode = 500;
     }
     next(err);
   }
