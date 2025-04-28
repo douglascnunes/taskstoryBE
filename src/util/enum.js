@@ -7,14 +7,14 @@ export const ACTIVITY_TYPE = [
   'PLANNING',
 ];
 
-export const ACTIVITY_STATE = [
+export const ACTIVITY_STATUS = [
   'REFERENCE',  // Some models have this first value as default = [0]
   'SPECIALIZED',
   'DELETED',
   'TRASH',
 ];
 
-export const SPECIALIZATION_STATE = [
+export const SPECIALIZATION_STATUS = [
   'INCUBATION',
   'TODO',
   'TODO_LATE',
@@ -62,7 +62,7 @@ export const PRIORITY_VALUES = {
   URGENT: [999, 999],
 };
 
-export const INSTANCE_STATE = [
+export const INSTANCE_STATUS = [
   'TODO',  // Some models have this first value as default = [0]
   'DOING',
   'WAITING',

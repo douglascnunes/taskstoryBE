@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
-import GoalInstanceStateHistory from './goalInstanceStateHistory.js';
-import { SPECIALIZATION_STATE } from '../../util/enum.js';
+import GoalInstanceStatusHistory from './goalInstanceStatusHistory.js';
+import { SPECIALIZATION_STATUS } from '../../util/enum.js';
 
 const GoalInstance = sequelize.define('goalInstance', {
   id: {
@@ -11,10 +11,10 @@ const GoalInstance = sequelize.define('goalInstance', {
     allowNull: false,
     primaryKey: true
   },
-  currentState: {
-    type: Sequelize.ENUM(SPECIALIZATION_STATE),
+  currentStatus: {
+    type: Sequelize.ENUM(SPECIALIZATION_STATUS),
     allowNull: false,
-    defaultValue: SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATUS[0],
   },
   initialDate: {
     type: Sequelize.DATE,
@@ -35,7 +35,7 @@ const GoalInstance = sequelize.define('goalInstance', {
   }
 });
 
-GoalInstance.hasMany(GoalInstanceStateHistory, { onDelete: 'CASCADE' });
-GoalInstanceStateHistory.belongsTo(GoalInstance);
+GoalInstance.hasMany(GoalInstanceStatusHistory, { onDelete: 'CASCADE' });
+GoalInstanceStatusHistory.belongsTo(GoalInstance);
 
 export default GoalInstance;

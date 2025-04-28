@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
-import TaskInstanceStateHistory from './taskStateHistory.js';
-import {SPECIALIZATION_STATE} from '../../util/enum.js';
+import TaskInstanceStatusHistory from './taskStatusHistory.js';
+import { SPECIALIZATION_STATUS } from '../../util/enum.js';
 
 const TaskInstance = sequelize.define('taskInstance', {
   id: {
@@ -11,10 +11,10 @@ const TaskInstance = sequelize.define('taskInstance', {
     allowNull: false,
     primaryKey: true
   },
-  currentState: {
-    type: Sequelize.ENUM(SPECIALIZATION_STATE),
+  currentStatus: {
+    type: Sequelize.ENUM(SPECIALIZATION_STATUS),
     allowNull: false,
-    defaultValue: SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATUS[0],
   },
   completedOn: {
     type: Sequelize.DATE,
@@ -35,7 +35,7 @@ const TaskInstance = sequelize.define('taskInstance', {
   }
 });
 
-TaskInstance.hasMany(TaskInstanceStateHistory, { onDelete: 'CASCADE' });
-TaskInstanceStateHistory.belongsTo(TaskInstance);
+TaskInstance.hasMany(TaskInstanceStatusHistory, { onDelete: 'CASCADE' });
+TaskInstanceStatusHistory.belongsTo(TaskInstance);
 
 export default TaskInstance;

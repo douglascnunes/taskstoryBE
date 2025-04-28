@@ -1,8 +1,8 @@
 import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
-import HabitInstanceStateHistory from './habitInstanceStateHistory.js';
-import { SPECIALIZATION_STATE } from '../../util/enum.js';
+import HabitInstanceStatusHistory from './habitInstanceStatusHistory.js';
+import { SPECIALIZATION_STATUS } from '../../util/enum.js';
 
 const HabitInstance = sequelize.define('habitInstance', {
   id: {
@@ -11,10 +11,10 @@ const HabitInstance = sequelize.define('habitInstance', {
     allowNull: false,
     primaryKey: true
   },
-  currentState: {
-    type: Sequelize.ENUM(SPECIALIZATION_STATE),
+  currentStatus: {
+    type: Sequelize.ENUM(SPECIALIZATION_STATUS),
     allowNull: false,
-    defaultValue: SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATUS[0],
   },
   finalDate: {
     type: Sequelize.DATE,
@@ -34,7 +34,7 @@ const HabitInstance = sequelize.define('habitInstance', {
   }
 });
 
-HabitInstance.hasMany(HabitInstanceStateHistory, { onDelete: 'CASCADE' });
-HabitInstanceStateHistory.belongsTo(HabitInstance, { allowNull: false });
+HabitInstance.hasMany(HabitInstanceStatusHistory, { onDelete: 'CASCADE' });
+HabitInstanceStatusHistory.belongsTo(HabitInstance, { allowNull: false });
 
 export default HabitInstance;

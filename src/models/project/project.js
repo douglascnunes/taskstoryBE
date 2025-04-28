@@ -4,7 +4,7 @@ import sequelize from '../../util/db.js';
 import Activity from '../activity/activity.js';
 import SubTask from './subTask.js';
 import TaskInstance from '../task/taskInstance.js';
-import { SPECIALIZATION_STATE } from '../../util/enum.js';
+import { SPECIALIZATION_STATUS } from '../../util/enum.js';
 
 const Project = sequelize.define('project', {
   id: {
@@ -13,10 +13,10 @@ const Project = sequelize.define('project', {
     allowNull: false,
     primaryKey: true
   },
-  currentState: {
-    type: Sequelize.ENUM(SPECIALIZATION_STATE),
+  currentSatus: {
+    type: Sequelize.ENUM(SPECIALIZATION_STATUS),
     allowNull: false,
-    defaultValue: SPECIALIZATION_STATE[0],
+    defaultValue: SPECIALIZATION_STATUS[0],
   },
   priorityEvolved: {
     type: Sequelize.BOOLEAN,

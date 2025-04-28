@@ -73,8 +73,10 @@ export const login = async (req, res, next) => {
     // }
     const token = jwt.sign({
       email: loadedUser.email,
-      userId: loadedUser.id.toString()
-    }, process.env.JWT_SECRET);
+      userId: loadedUser.id.toString(),
+    }, process.env.JWT_SECRET,
+      { expiresIn: '5h' }
+    );
 
     console.log(`[LOGIN] User < ${loadedUser.name} > (id:${loadedUser.id}) logged in.`);
     res.status(200).json({

@@ -1,13 +1,13 @@
 import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
-import ActivityStateHistory from './activityStateHistory.js';
+import ActivityStatusHistory from './activityStatusHistory.js';
 import Dependency from './dependency.js';
 import Keyword from '../areaOfLife/keyword.js';
 import ActivityKeyword from './activityKeyword.js';
 
 
-import { ACTIVITY_TYPE, ACTIVITY_STATE, IMPORTANCE_NAMES, DIFFICULTY_NAMES } from '../../util/enum.js';
+import { ACTIVITY_TYPE, ACTIVITY_STATUS, IMPORTANCE_NAMES, DIFFICULTY_NAMES } from '../../util/enum.js';
 
 
 const Activity = sequelize.define('activity', {
@@ -24,15 +24,15 @@ const Activity = sequelize.define('activity', {
   description: {
     type: Sequelize.STRING,
   },
-  activityType: {
+  type: {
     type: Sequelize.ENUM(ACTIVITY_TYPE),
     allowNull: false,
     defaultValue: ACTIVITY_TYPE[0],
   },
-  activityState: {
-    type: Sequelize.ENUM(ACTIVITY_STATE),
+  status: {
+    type: Sequelize.ENUM(ACTIVITY_STATUS),
     allowNull: false,
-    defaultValue: ACTIVITY_STATE[0],
+    defaultValue: ACTIVITY_STATUS[0],
   },
   importance: {
     type: Sequelize.ENUM(IMPORTANCE_NAMES),
@@ -44,8 +44,8 @@ const Activity = sequelize.define('activity', {
   },
 });
 
-Activity.hasMany(ActivityStateHistory, { onDelete: 'CASCADE' });
-ActivityStateHistory.belongsTo(Activity);
+Activity.hasMany(ActivityStatusHistory, { onDelete: 'CASCADE' });
+ActivityStatusHistory.belongsTo(Activity);
 
 Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
 Dependency.belongsTo(Activity, { foreignKey: 'dependentActivityId' });

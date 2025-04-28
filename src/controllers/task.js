@@ -6,7 +6,8 @@ import Activity from '../models/activity/activity.js';
 import Keyword from '../models/areaOfLife/keyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
-import { ACTIVITY_STATE, ACTIVITY_TYPE } from '../util/enum.js';
+import { ACTIVITY_STATUS, ACTIVITY_TYPE } from '../util/enum.js';
+import { Op } from 'sequelize';
 
 
 export const createTask = async (req, res, next) => {
@@ -36,8 +37,8 @@ export const createTask = async (req, res, next) => {
       description: description,
       importance: importance,
       difficulty: difficulty,
-      activityType: ACTIVITY_TYPE[1], // TASK
-      activityState: ACTIVITY_STATE[1], // SPECIALIZED
+      type: ACTIVITY_TYPE[1], // TASK
+      status: ACTIVITY_STATUS[1], // SPECIALIZED
       userId: req.userId
     },
       { transaction }
@@ -50,10 +51,12 @@ export const createTask = async (req, res, next) => {
           [Op.or]: [req.userId, null]
         }
       }
-    });
-    await updatedActivity.setKeywords(keywordsFetched, { transaction });
+    },
+      { transaction }
+    );
 
-  
+    await newActivity.setKeywords(keywordsFetched, { transaction });
+
     const newTask = await Task.create(
       {
         activityId: newActivity.id,
@@ -79,12 +82,15 @@ export const createTask = async (req, res, next) => {
 
     await transaction.commit();
 
+    console.log('[CREATE TASK] title:' + newActivity.title + ', desc:' + newActivity.description)
+
     res.status(201).json({
       message: 'Task created successfully',
       task: newTask,
     });
   } catch (error) {
     await transaction.rollback();
+    console.log(error.message)
 
     res.status(500).json({
       message: 'Creating task failed',

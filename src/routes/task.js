@@ -41,11 +41,11 @@ router.post('/tasks', isAuth,
         return true;
       }),
 
-    body('initialDate')
+    body('startPeriod')
       .optional()
       .isDate(),
 
-    body('finalDate')
+    body('endPeriod')
       .optional()
       .isDate(),
 
@@ -63,10 +63,10 @@ router.post('/tasks', isAuth,
 
     body()
       .custom((value, { req }) => {
-        if (!req.body.finalDate && !frequenceIntervalDays && !frequenceWeeklyDays) {
-          throw new Error('FinalDate, frequenceIntervalDays or frequenceWeeklyDays must be provided.');
+        if (!req.body.endPeriod && !req.body.frequenceIntervalDays && !req.body.frequenceWeeklyDays) {
+          throw new Error('endPeriod, frequenceIntervalDays or frequenceWeeklyDays must be provided.');
         }
-        else if (!!frequenceIntervalDays === !!frequenceWeeklyDays) {
+        else if (!!req.body.frequenceIntervalDays && !!req.body.frequenceWeeklyDays) {
           throw new Error('Either "frequenceIntervalDays" or "frequenceWeeklyDays" must be provided, but not both.');
         };
 

@@ -3,7 +3,7 @@ import { validationResult as expValidatorRes } from 'express-validator';
 
 import sequelize from '../util/db.js';
 import { controllerErrorObj } from '../util/error.js';
-import { ACTIVITY_TYPE, PRIORITY_VALUES, SPECIALIZATION_STATE } from '../util/enum.js';
+import { ACTIVITY_TYPE, PRIORITY_VALUES, SPECIALIZATION_STATUS } from '../util/enum.js';
 
 import Activity from '../models/activity/activity.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
@@ -45,7 +45,7 @@ export const getOverview = async (req, res, next) => {
     const activities = await Activity.findAll({
       where: {
         userId: req.userId,
-        activityType: ACTIVITY_TYPE[1], //'SPECIALIZED'
+        type: ACTIVITY_TYPE[1], //'SPECIALIZED'
       },
       include: [
         {
@@ -61,21 +61,21 @@ export const getOverview = async (req, res, next) => {
             { model: Step, required: false },
             {
               model: TaskInstance,
-              required: true,
+              required: false,
               where: {
                 finalDate: {
                   [Op.between]: [startdate, finaldate],
                 },
-                currentState: {
+                currentStatus: {
                   [Op.in]: [
-                    SPECIALIZATION_STATE[1], // 'TODO'
-                    SPECIALIZATION_STATE[2], // 'TODO_LATE'
-                    SPECIALIZATION_STATE[3], // 'WAITING'
-                    SPECIALIZATION_STATE[4], // 'WAITING_LATE'
-                    SPECIALIZATION_STATE[5], // 'DOING'
-                    SPECIALIZATION_STATE[6], // 'DOING_LATE'
-                    SPECIALIZATION_STATE[7], // 'COMPLETED'
-                    SPECIALIZATION_STATE[8], // 'COMPLETED_LATE'
+                    SPECIALIZATION_STATUS[1], // 'TODO'
+                    SPECIALIZATION_STATUS[2], // 'TODO_LATE'
+                    SPECIALIZATION_STATUS[3], // 'WAITING'
+                    SPECIALIZATION_STATUS[4], // 'WAITING_LATE'
+                    SPECIALIZATION_STATUS[5], // 'DOING'
+                    SPECIALIZATION_STATUS[6], // 'DOING_LATE'
+                    SPECIALIZATION_STATUS[7], // 'COMPLETED'
+                    SPECIALIZATION_STATUS[8], // 'COMPLETED_LATE'
                   ],
                 },
               },
@@ -101,7 +101,7 @@ export const getOverview = async (req, res, next) => {
         ]
       },
     );
-
+    console.log('[GET OVERVIEW] Activities quant: ' + activities.length)
     res.status(200).json({
       message: 'Fetched Overview Activities successfully.',
       activities: activities,
@@ -118,9 +118,9 @@ export const getOverview = async (req, res, next) => {
 };
 
 export const getFilteredActivities = async (req, res, next) => {
-  const { state, activitytype, keyword, areaoflife, searchtext, priority } = req.query;
+  const { status, type, keyword, areaoflife, searchtext, priority } = req.query;
 
-  const decodedActivitytype = activitytype ? decodeURIComponent(activitytype) : null;
+  const decodedType = type ? decodeURIComponent(type) : null;
   const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
   const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
   const decodedSearchText = searchtext ? decodeURIComponent(searchtext) : null;
@@ -130,23 +130,16 @@ export const getFilteredActivities = async (req, res, next) => {
   try {
     let filters = {};
 
-    // Search State
-    if (state) {
-      const stateArray = state.split(',').map(s => s.toUpperCase());
-      filters.currentState = stateArray;
+    // Search Status
+    if (status) {
+      const statusArray = status.split(',').map(s => s.toUpperCase());
+      filters.currentStatus = statusArray;
     }
 
     // Search Activity Type
-    if (state) {
-      const activityTypeArray = decodedActivitytype.split(',').map(at => at.toUpperCase());
-      filters.activitytype = activityTypeArray;
-    }
-
-
-    // Search Activity Type
-    if (activitytype) {
-      const activitytypeArray = activitytype.split(',').map(s => s.toUpperCase());
-      filters.activityType = activitytypeArray;
+    if (type) {
+      const typeArray = decodedType.split(',').map(t => t.toUpperCase());
+      filters.type = typeArray;
     }
 
     // Search AreOfLife
@@ -205,7 +198,6 @@ export const getFilteredActivities = async (req, res, next) => {
 
     const activities = await Activity.findAll({
       where: filters,
-      // include: decodedActivitytype === 'TASK' ? include : []
       include: [
         {
           model: Task,
@@ -282,7 +274,9 @@ export const createActivity = async (req, res, next) => {
           [Op.or]: [req.userId, null]
         }
       }
-    });
+    },
+      { transaction }
+    );
     await newActivity.setKeywords(keywordsFetched, { transaction });
 
     await transaction.commit();
@@ -329,7 +323,7 @@ export const updateActivity = async (req, res, next) => {
       },
     });
 
-    if (!updatedActivity || updatedActivity.activityState === 'SPECIALIZED') {
+    if (!updatedActivity || updatedActivity.status === 'SPECIALIZED') {
       return res.status(404).json({ message: 'Activity not found.' });
     };
 

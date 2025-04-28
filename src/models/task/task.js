@@ -25,7 +25,7 @@ const Task = sequelize.define('task', {
     allowNull: true
   },
   frequenceWeeklyDays: {
-    type: Sequelize.STRING,
+    type: Sequelize.JSON,
     allowNull: true
   },
   instanceStrikeRecord: {
