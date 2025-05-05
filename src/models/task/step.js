@@ -12,6 +12,8 @@ const Step = sequelize.define('step', {
     type: Sequelize.STRING,
     allowNull: false
   }
-});
+},
+  { timestamps: false }
+);
 
 export default Step;

@@ -26,7 +26,9 @@ const Project = sequelize.define('project', {
     type: Sequelize.DATE,
     allowNull: true,
   },
-});
+},
+  { timestamps: false }
+);
 
 Activity.hasOne(Project, { onDelete: 'CASCADE' });
 Project.belongsTo(Activity, { allowNull: false });

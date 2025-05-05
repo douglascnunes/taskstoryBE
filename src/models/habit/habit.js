@@ -47,7 +47,9 @@ const Habit = sequelize.define('habit', {
     type: Sequelize.INTEGER,
     allowNull: true,
   },
-});
+},
+  { timestamps: false }
+);
 
 Activity.hasOne(Habit, { onDelete: 'CASCADE' });
 Habit.belongsTo(Activity, { allowNull: false });

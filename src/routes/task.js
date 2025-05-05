@@ -23,6 +23,10 @@ router.post('/tasks', isAuth,
     body('keywords')
       .isArray({ min: 1 }).withMessage('Must select at least 1 keyword.'),
 
+    body('createdAt')
+      .notEmpty()
+      .isISO8601().withMessage('Invalid date format for createdAt.'),
+
     body('importance')
       .isString()
       .custom((value) => {
@@ -43,11 +47,11 @@ router.post('/tasks', isAuth,
 
     body('startPeriod')
       .optional()
-      .isDate(),
+      .isISO8601().withMessage('Invalid date format for startPeriod.'),
 
     body('endPeriod')
       .optional()
-      .isDate(),
+      .isISO8601().withMessage('Invalid date format for endPeriod.'),
 
     body('frequenceIntervalDays')
       .optional()
@@ -55,7 +59,14 @@ router.post('/tasks', isAuth,
 
     body('frequenceWeeklyDays')
       .optional()
-      .isString(),
+      .isArray().withMessage('frequenceWeeklyDays must be an array.')
+      .custom((arr) => {
+        const isValid = Array.isArray(arr) && arr.every(num =>
+          Number.isInteger(num) && num >= 0 && num <= 6
+        );
+        if (!isValid) throw new Error('frequenceWeeklyDays must contain only integers from 0 to 6.');
+        return true;
+      }),
 
     body('steps')
       .optional()

@@ -8,13 +8,15 @@ import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
 import { ACTIVITY_STATUS, ACTIVITY_TYPE } from '../util/enum.js';
 import { Op } from 'sequelize';
+import { parseDateOnly } from '../util/date.js';
+
 
 
 export const createTask = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
-  }
+  };
 
   const {
     title,
@@ -22,12 +24,14 @@ export const createTask = async (req, res, next) => {
     keywords,
     difficulty,
     importance,
+    createdAt,
     startPeriod,
     endPeriod,
     frequenceIntervalDays,
     frequenceWeeklyDays,
     steps,
   } = req.body;
+
 
   const transaction = await sequelize.transaction();
 
@@ -37,6 +41,7 @@ export const createTask = async (req, res, next) => {
       description: description,
       importance: importance,
       difficulty: difficulty,
+      createdAt: createdAt,
       type: ACTIVITY_TYPE[1], // TASK
       status: ACTIVITY_STATUS[1], // SPECIALIZED
       userId: req.userId

@@ -11,7 +11,9 @@ const Planning = sequelize.define('planning', {
     allowNull: false,
     primaryKey: true
   },
-});
+},
+  { timestamps: false }
+);
 
 Activity.hasOne(Planning, { onDelete: 'CASCADE' });
 Planning.belongsTo(Activity, { allowNull: false });

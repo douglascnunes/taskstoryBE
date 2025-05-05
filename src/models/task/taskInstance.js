@@ -27,7 +27,6 @@ const TaskInstance = sequelize.define('taskInstance', {
   stepCompletionStatus: {
     type: Sequelize.JSON,
     allowNull: true,
-    // {step1: boolean, step2: boolean, step3: boolean}
   },
   priorityEvolved: {
     type: Sequelize.BOOLEAN,

@@ -42,7 +42,13 @@ const Activity = sequelize.define('activity', {
     type: Sequelize.ENUM(DIFFICULTY_NAMES),
     allowNull: false,
   },
-});
+  createdAt: {
+    type: Sequelize.DATE,
+    allowNull: false,
+  },
+},
+  { timestamps: false }
+);
 
 Activity.hasMany(ActivityStatusHistory, { onDelete: 'CASCADE' });
 ActivityStatusHistory.belongsTo(Activity);

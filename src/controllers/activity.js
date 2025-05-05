@@ -18,26 +18,24 @@ import TaskInstance from '../models/task/taskInstance.js';
 import Goal from '../models/goal/goal.js';
 import Challenge from '../models/goal/challenge.js';
 import GoalInstance from '../models/goal/goalInstance.js';
+import { parseDateOnly } from '../util/date.js';
+import { getTaskPeriodFilter } from '../util/whereSequelize/task.js';
 
 
 export const getOverview = async (req, res, next) => {
   try {
-    // Pega os valores das query strings e faz a decodificação
     let { startdate, finaldate } = req.query;
     startdate = startdate ? new Date(decodeURIComponent(startdate)) : null;
     finaldate = finaldate ? new Date(decodeURIComponent(finaldate)) : null;
-
-    // Se as datas não forem válidas, definir valores padrão (2 meses atrás e 2 meses à frente)
-    if (isNaN(startdate?.getTime())) {
+    
+    if (!startdate) {
       startdate = new Date();
       startdate.setMonth(startdate.getMonth() - 2);
     }
-    if (isNaN(finaldate?.getTime())) {
+    if (!finaldate) {
       finaldate = new Date();
       finaldate.setMonth(finaldate.getMonth() + 2);
     }
-
-    // Garantir que startDate seja menor que finalDate
     if (startdate > finaldate) {
       return res.status(400).json({ message: 'startDate deve ser anterior a finalDate.' });
     }
@@ -57,6 +55,7 @@ export const getOverview = async (req, res, next) => {
         {
           model: Task,
           required: true,
+          where: getTaskPeriodFilter(startdate, finaldate),
           include: [
             { model: Step, required: false },
             {
@@ -101,7 +100,8 @@ export const getOverview = async (req, res, next) => {
         ]
       },
     );
-    console.log('[GET OVERVIEW] Activities quant: ' + activities.length)
+
+    console.log('[GET OVERVIEW] Activities quant: ' + activities.length);
     res.status(200).json({
       message: 'Fetched Overview Activities successfully.',
       activities: activities,
@@ -250,6 +250,7 @@ export const createActivity = async (req, res, next) => {
     title,
     description,
     keywords,
+    createdAt,
     difficulty,
     importance,
   } = req.body;
@@ -262,6 +263,7 @@ export const createActivity = async (req, res, next) => {
       description: description,
       importance: importance,
       difficulty: difficulty,
+      createdAt: parseDateOnly(createdAt),
       userId: req.userId
     },
       { transaction }
@@ -311,6 +313,7 @@ export const updateActivity = async (req, res, next) => {
     keywords,
     importance,
     difficulty,
+    createAt,
   } = req.body;
 
   const transaction = await sequelize.transaction();
@@ -336,6 +339,8 @@ export const updateActivity = async (req, res, next) => {
     if (importance) updatedFields.importance = importance;
 
     if (difficulty) updatedFields.difficulty = difficulty;
+
+    if (createAt) updatedFields.createAt = createAt;
 
     await updatedActivity.update(
       updatedFields,

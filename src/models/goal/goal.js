@@ -24,7 +24,9 @@ const Goal = sequelize.define('goal', {
     type: Sequelize.STRING,
     allowNull: true
   },
-});
+},
+  { timestamps: false }
+);
 
 Activity.hasOne(Goal, { onDelete: 'CASCADE' });
 Goal.belongsTo(Activity, { allowNull: false });

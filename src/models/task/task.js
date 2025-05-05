@@ -37,7 +37,10 @@ const Task = sequelize.define('task', {
     type: Sequelize.INTEGER,
     allowNull: true,
   },
-});
+},
+  { timestamps: false }
+);
+
 
 Activity.hasOne(Task, { onDelete: 'CASCADE' });
 Task.belongsTo(Activity, { allowNull: false });
