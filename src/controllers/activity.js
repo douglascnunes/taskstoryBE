@@ -260,10 +260,10 @@ export const createActivity = async (req, res, next) => {
   try {
     const newActivity = await Activity.create({
       title: title,
-      description: description,
+      description: description ? description: null,
       importance: importance,
       difficulty: difficulty,
-      createdAt: parseDateOnly(createdAt),
+      createdAt: createdAt,
       userId: req.userId
     },
       { transaction }
