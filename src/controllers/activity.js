@@ -27,7 +27,7 @@ export const getOverview = async (req, res, next) => {
     let { startdate, finaldate } = req.query;
     startdate = startdate ? new Date(decodeURIComponent(startdate)) : null;
     finaldate = finaldate ? new Date(decodeURIComponent(finaldate)) : null;
-    
+
     if (!startdate) {
       startdate = new Date();
       startdate.setMonth(startdate.getMonth() - 2);
@@ -236,7 +236,48 @@ export const getFilteredActivities = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
+  };
+};
+
+
+export const getAcitivity = async (req, res, next) => {
+  const { activityId, instanceId } = req.query;
+
+  try {
+    const activity = await Activity.findOne({
+      where: {
+        id: activityId,
+        userId: req.userId,
+      },
+      include: [
+        {
+          model: Task,
+          required: false,
+          include: [
+            { model: Step, required: false },
+            ...(instanceId
+              ? [{
+                model: TaskInstance,
+                required: false,
+                where: { id: instanceId },
+              }]
+              : [])
+          ],
+        },
+      ],
+    });
+
+    res.status(200).json({
+      message: 'Fetched Activities successfully.',
+      activities: activity
+    });
   }
+  catch (err) {
+    if (!err.statusCode) {
+      err.statusCode = 500;
+    }
+    next(err);
+  };
 };
 
 
@@ -324,6 +365,7 @@ export const updateActivity = async (req, res, next) => {
         id: activityId,
         userId: req.userId,
       },
+
     });
 
     if (!updatedActivity || updatedActivity.status === 'SPECIALIZED') {
