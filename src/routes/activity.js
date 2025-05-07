@@ -43,9 +43,10 @@ router.post('/activities', isAuth,
         }
         return true;
       }),
+      
     body('createdAt')
       .notEmpty()
-      .isISO8601().withMessage('Invalid date format for createdAt.')
+      .isISO8601().withMessage('Invalid date format for createdAt.'),
   ],
   activityController.createActivity
 );
