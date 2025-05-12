@@ -7,7 +7,8 @@ import Keyword from '../areaOfLife/keyword.js';
 import ActivityKeyword from './activityKeyword.js';
 
 
-import { ACTIVITY_TYPE, ACTIVITY_STATUS, IMPORTANCE_NAMES, DIFFICULTY_NAMES } from '../../util/enum.js';
+import { ACTIVITY_TYPE, STATUS, IMPORTANCE_NAMES, DIFFICULTY_NAMES } from '../../util/enum.js';
+import User from '../user/user.js';
 
 
 const Activity = sequelize.define('activity', {
@@ -30,9 +31,9 @@ const Activity = sequelize.define('activity', {
     defaultValue: ACTIVITY_TYPE[0],
   },
   status: {
-    type: Sequelize.ENUM(ACTIVITY_STATUS),
+    type: Sequelize.ENUM(STATUS),
     allowNull: false,
-    defaultValue: ACTIVITY_STATUS[0],
+    defaultValue: STATUS[0],
   },
   importance: {
     type: Sequelize.ENUM(IMPORTANCE_NAMES),
@@ -61,5 +62,8 @@ Dependency.belongsTo(Activity, { foreignKey: 'requiredActivityId' });
 
 Activity.belongsToMany(Keyword, { through: ActivityKeyword });
 Keyword.belongsToMany(Activity, { through: ActivityKeyword });
+
+User.hasMany(Activity, { onDelete: 'CASCADE' });
+Activity.belongsTo(User, { allowNull: false });
 
 export default Activity;

@@ -1,7 +1,6 @@
 import Sequelize from 'sequelize';
 import sequelize from '../../util/db.js';
 
-import Activity from '../activity/activity.js';
 import Keyword from '../areaOfLife/keyword.js';
 import AreaOfLife from '../areaOfLife/areaOfLife.js';
 import UserAreaOfLifeConfig from './userAreaofLifeConfig.js';
@@ -109,9 +108,6 @@ const User = sequelize.define('user', {
 
 User.hasMany(UserSessionDay, { onDelete: 'CASCADE' });
 UserSessionDay.belongsTo(User);
-
-User.hasMany(Activity, { onDelete: 'CASCADE' });
-Activity.belongsTo(User, { allowNull: false });
 
 User.belongsTo(UserLevel);
 UserLevel.hasMany(User);

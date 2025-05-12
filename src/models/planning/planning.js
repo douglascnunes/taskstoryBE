@@ -15,10 +15,10 @@ const Planning = sequelize.define('planning', {
   { timestamps: false }
 );
 
-Activity.hasOne(Planning, { onDelete: 'CASCADE' });
-Planning.belongsTo(Activity, { allowNull: false });
+// Activity.hasOne(Planning, { onDelete: 'CASCADE' });
+// Planning.belongsTo(Activity, { allowNull: false });
 
-Planning.hasMany(Result, { onDelete: 'CASCADE' });
-Result.belongsTo(Planning);
+// Planning.hasMany(Result, { onDelete: 'CASCADE' });
+// Result.belongsTo(Planning);
 
 export default Planning;

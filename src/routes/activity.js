@@ -11,6 +11,8 @@ router.get('/activities', isAuth, activityController.getFilteredActivities);
 
 router.get('/overview', isAuth, activityController.getOverview);
 
+router.get('/activities/:id', isAuth, activityController.getActivity);
+
 router.post('/activities', isAuth,
   [
     body('title')
@@ -43,7 +45,7 @@ router.post('/activities', isAuth,
         }
         return true;
       }),
-      
+
     body('createdAt')
       .notEmpty()
       .isISO8601().withMessage('Invalid date format for createdAt.'),
@@ -52,23 +54,17 @@ router.post('/activities', isAuth,
 );
 
 
-router.patch('/activities', isAuth,
+router.patch('/activities/:id', isAuth,
 
   (req, res, next) => {
     const { title, description, keywords, importance, difficulty } = req.body;
 
     if (
-      title === undefined &&
-      description === undefined &&
-      keywords === undefined &&
-      importance === undefined &&
-      difficulty === undefined
-    ) {
+      !title && !description && !keywords && !importance && !difficulty) {
       return res.status(400).json({
-        message: 'At least one field (title, description, keywords, importance, difficulty) must be provided for update.'
+        message: 'At least one field (title, description, keywords, importance, difficulty or steps) must be provided for update.'
       });
     }
-
     next();
   },
 
@@ -89,7 +85,7 @@ router.patch('/activities', isAuth,
 
     body('keywords')
       .optional()
-      .isArray().withMessage('Must be a array.'),
+      .isArray().withMessage('Keywords must be a array.'),
 
     body('importance')
       .optional()

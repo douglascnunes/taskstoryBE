@@ -3,7 +3,7 @@ import { validationResult as expValidatorRes } from 'express-validator';
 
 import sequelize from '../util/db.js';
 import { controllerErrorObj } from '../util/error.js';
-import { ACTIVITY_TYPE, PRIORITY_VALUES, SPECIALIZATION_STATUS } from '../util/enum.js';
+import { ACTIVITY_TYPE, PRIORITY_VALUES } from '../util/enum.js';
 
 import Activity from '../models/activity/activity.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
@@ -18,8 +18,7 @@ import TaskInstance from '../models/task/taskInstance.js';
 import Goal from '../models/goal/goal.js';
 import Challenge from '../models/goal/challenge.js';
 import GoalInstance from '../models/goal/goalInstance.js';
-import { parseDateOnly } from '../util/date.js';
-import { getTaskPeriodFilter } from '../util/whereSequelize/task.js';
+import { getTaskPeriodFilter } from '../util/helpers/controller-task.js';
 
 
 export const getOverview = async (req, res, next) => {
@@ -64,18 +63,6 @@ export const getOverview = async (req, res, next) => {
               where: {
                 finalDate: {
                   [Op.between]: [startdate, finaldate],
-                },
-                currentStatus: {
-                  [Op.in]: [
-                    SPECIALIZATION_STATUS[1], // 'TODO'
-                    SPECIALIZATION_STATUS[2], // 'TODO_LATE'
-                    SPECIALIZATION_STATUS[3], // 'WAITING'
-                    SPECIALIZATION_STATUS[4], // 'WAITING_LATE'
-                    SPECIALIZATION_STATUS[5], // 'DOING'
-                    SPECIALIZATION_STATUS[6], // 'DOING_LATE'
-                    SPECIALIZATION_STATUS[7], // 'COMPLETED'
-                    SPECIALIZATION_STATUS[8], // 'COMPLETED_LATE'
-                  ],
                 },
               },
             },
@@ -240,26 +227,37 @@ export const getFilteredActivities = async (req, res, next) => {
 };
 
 
-export const getAcitivity = async (req, res, next) => {
-  const { activityId, instanceId } = req.query;
+export const getActivity = async (req, res, next) => {
+  const { id } = req.params;
+  const { instance } = req.query;
 
   try {
     const activity = await Activity.findOne({
       where: {
-        id: activityId,
+        id: id,
         userId: req.userId,
       },
       include: [
         {
+          model: Keyword,
+          required: true,
+          attributes: ['id', 'name', 'colorAngle'],
+          through: { attributes: [] },
+        },
+        {
           model: Task,
           required: false,
           include: [
-            { model: Step, required: false },
-            ...(instanceId
+            {
+              model: Step,
+              required: false,
+              attributes: ['id', 'description'],
+            },
+            ...(instance
               ? [{
                 model: TaskInstance,
                 required: false,
-                where: { id: instanceId },
+                where: { id: instance },
               }]
               : [])
           ],
@@ -267,9 +265,10 @@ export const getAcitivity = async (req, res, next) => {
       ],
     });
 
+    console.log('[GET ACTIVITY] Activity title: ' + activity.title);
     res.status(200).json({
       message: 'Fetched Activities successfully.',
-      activities: activity
+      activity: activity
     });
   }
   catch (err) {
@@ -301,7 +300,7 @@ export const createActivity = async (req, res, next) => {
   try {
     const newActivity = await Activity.create({
       title: title,
-      description: description ? description: null,
+      description: description ? description : null,
       importance: importance,
       difficulty: difficulty,
       createdAt: createdAt,
@@ -342,6 +341,7 @@ export const createActivity = async (req, res, next) => {
 
 
 export const updateActivity = async (req, res, next) => {
+  console.log(req.body)
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));

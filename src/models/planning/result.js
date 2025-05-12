@@ -23,6 +23,6 @@ const Result = sequelize.define('result', {
   }
 });
 
-Result.belongsTo(Activity, { foreignKey: 'trackedActivityId', allowNull: true });
+// Result.belongsTo(Activity, { foreignKey: 'trackedActivityId', allowNull: true });
 
 export default Result;

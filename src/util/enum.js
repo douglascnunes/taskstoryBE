@@ -7,27 +7,28 @@ export const ACTIVITY_TYPE = [
   'PLANNING',
 ];
 
-export const ACTIVITY_STATUS = [
-  'REFERENCE',  // Some models have this first value as default = [0]
+export const STATUS = [
+  'ACTIVE',  // Some models have this first value as default = [0]
   'SPECIALIZED',
+  'PAUSED',
   'DELETED',
   'TRASH',
 ];
 
-export const SPECIALIZATION_STATUS = [
-  'INCUBATION',
-  'TODO',
-  'TODO_LATE',
-  'WAITING',
-  'WAITING_LATE',
-  'DOING',
-  'DOING_LATE',
-  'COMPLETED',
-  'COMPLETED_LATE',
-  'PAUSED',
-  'PAUSED_LATE',
-  'DELETED',
-];
+// export const SPECIALIZATION_STATUS = [
+//   'INCUBATION',
+//   'TODO',
+//   'TODO_LATE',
+//   'WAITING',
+//   'WAITING_LATE',
+//   'DOING',
+//   'DOING_LATE',
+//   'COMPLETED',
+//   'COMPLETED_LATE',
+//   'PAUSED',
+//   'PAUSED_LATE',
+//   'DELETED',
+// ];
 
 export const IMPORTANCE_NAMES = [
   'LOW',
@@ -63,14 +64,10 @@ export const PRIORITY_VALUES = {
 };
 
 export const INSTANCE_STATUS = [
-  'TODO',  // Some models have this first value as default = [0]
-  'DOING',
-  'WAITING',
-  'COMPLETED',
-  'COMPLETEDLATE',
-  'LATE',
-  'DELETED',
+  'ACTIVE',  // Some models have this first value as default = [0]
   'PAUSED',
+  'DELETED',
+  'TRASH',
 ];
 
 export const MISSION_TYPE = [

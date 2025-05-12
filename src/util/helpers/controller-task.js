@@ -38,3 +38,18 @@ export function getTaskPeriodFilter(startdate, finaldate) {
     ]
   };
 };
+
+
+
+export function buildTaskUpdateData(data) {
+  const fields = ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'steps'];
+  const updateData = {};
+
+  for (const field of fields) {
+    if (data[field] !== undefined) {
+      updateData[field] = data[field];
+    };
+  };
+
+  return updateData;
+};

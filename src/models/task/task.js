@@ -4,6 +4,7 @@ import sequelize from '../../util/db.js';
 import Activity from '../activity/activity.js';
 import Step from './step.js';
 import TaskInstance from './taskInstance.js';
+import User from '../user/user.js';
 
 const Task = sequelize.define('task', {
   id: {
@@ -50,5 +51,8 @@ Step.belongsTo(Task, { allowNull: false });
 
 Task.hasMany(TaskInstance, { allowNull: false, onDelete: 'CASCADE' });
 TaskInstance.belongsTo(Task, { allowNull: false });
+
+User.hasMany(Task, { onDelete: 'CASCADE' });
+Task.belongsTo(User, { allowNull: false });
 
 export default Task;
