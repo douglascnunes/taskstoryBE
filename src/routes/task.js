@@ -9,7 +9,7 @@ const router = express.Router();
 
 router.get('/tasks/:activityid/', isAuth, taskController.getTask);
 
-router.get('/tasks/:activityid/:instanceid', isAuth, taskController.getTask);
+router.get('/tasks/:activityid/:instanceid', isAuth, taskController.getTaskInstance);
 
 router.post('/tasks', isAuth,
   [

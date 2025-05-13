@@ -178,13 +178,13 @@ export const createTask = async (req, res, next) => {
       for (const step of steps) {
         const newStep = await Step.create(
           {
-            description: step.description,
+            description: step,
           },
           { transaction }
         );
         await newTask.addStep(newStep, { transaction });
-      }
-    }
+      };
+    };
 
     await transaction.commit();
 
@@ -374,7 +374,6 @@ export const createInstance = async (req, res, next) => {
     await transaction.commit();
 
     console.log('[CREATE TASK INSTANCE] finalDate: ' + newInstance.finalDate);
-
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',
