@@ -33,6 +33,7 @@ export const getTask = async (req, res, next) => {
         {
           model: Task,
           required: true,
+          attributes: ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
           include: [
             {
               model: Step,
@@ -78,6 +79,7 @@ export const getTaskInstance = async (req, res, next) => {
         {
           model: Task,
           required: true,
+          attributes: ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
           include: [
             {
               model: Step,
