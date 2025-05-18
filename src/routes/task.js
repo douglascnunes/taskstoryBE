@@ -3,7 +3,7 @@ import { body, check, param } from 'express-validator';
 
 import isAuth from '../middleware/isAuth.js';
 import * as taskController from '../controllers/task.js';
-import { DIFFICULTY_NAMES, IMPORTANCE_NAMES } from '../util/enum.js';
+import { DIFFICULTY_NAMES, IMPORTANCE_NAMES, INSTANCE_STATUS } from '../util/enum.js';
 
 const router = express.Router();
 

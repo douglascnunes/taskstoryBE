@@ -33,12 +33,12 @@ export const getTask = async (req, res, next) => {
         {
           model: Task,
           required: true,
-          attributes: ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
+          attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
           include: [
             {
               model: Step,
               required: false,
-              attributes: ['id', 'description'],
+              attributes: ['id', 'description', 'index'],
             },
           ],
         },
@@ -79,26 +79,25 @@ export const getTaskInstance = async (req, res, next) => {
         {
           model: Task,
           required: true,
-          attributes: ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
+          attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
           include: [
             {
               model: Step,
               required: false,
-              attributes: ['id', 'description'],
+              attributes: ['id', 'description', 'index'],
             },
             ...(instanceid
               ? [{
                 model: TaskInstance,
                 required: false,
-                where: { id: instanceid, userId: req.userId },
+                where: { id: instanceid },
               }]
               : [])
           ],
         },
       ],
     });
-
-    console.log('[GET TASK + INSTANCE] Task title: ' + activity.title);
+    console.log('[GET TASK + INSTANCE] Task title: ' + activity.title + '  InstanceId: ' + activity.task.taskInstances.map(s => s.id));
     res.status(200).json({
       message: 'Fetched Activities successfully.',
       task: activity
@@ -181,6 +180,7 @@ export const createTask = async (req, res, next) => {
         const newStep = await Step.create(
           {
             description: step.description,
+            index: step.index
           },
           { transaction }
         );
@@ -312,17 +312,23 @@ export const upsertSteps = async (req, res, next) => {
       if (step.id) {
         const existingStep = existingSteps.find(s => s.id === step.id);
         if (existingStep) {
-          await existingStep.update({ description: step.description }, { transaction });
+          await existingStep.update({
+            description: step.description,
+            index: step.index,
+          }, { transaction });
         }
       } else {
-        await Step.create(
-          { description: step.description, taskId: task.id },
-          { transaction }
-        );
-      }
+        await Step.create({
+          description: step.description,
+          index: step.index,
+          taskId: task.id,
+        }, { transaction });
+      };
     };
 
     console.log('[UPSERT STEPS] TaskId: ' + task.id);
+
+
 
     await transaction.commit();
 
@@ -367,6 +373,7 @@ export const createInstance = async (req, res, next) => {
       completedOn: completedOn ?? null,
       status: status ?? null,
       stepCompletionStatus: stepCompletionStatus ?? null,
+      userId: req.userId,
       taskId: task.id
     },
       { transaction }
@@ -401,7 +408,7 @@ export const updateInstance = async (req, res, next) => {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
 
-  const { activityid, instanceid } = req.params;
+  const { taskid, instanceid } = req.params;
   const userId = req.userId;
   const { finalDate, completedOn, status, stepCompletionStatus } = req.body;
 
@@ -409,14 +416,13 @@ export const updateInstance = async (req, res, next) => {
 
   try {
     const task = await Task.findOne({
-      where: { id: activityid, userId },
-      transaction,
+      where: { id: taskid, userId },
     });
     if (!task) return res.status(404).json({ message: 'Related Task not found.' });
 
 
     const instance = await TaskInstance.findOne({
-      where: { id: instanceid, userId }
+      where: { id: instanceid, userId: req.userId }
     });
 
     instance.finalDate = finalDate ?? instance.finalDate;
