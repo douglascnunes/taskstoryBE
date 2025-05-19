@@ -11,6 +11,10 @@ const Step = sequelize.define('step', {
   description: {
     type: Sequelize.STRING,
     allowNull: false
+  },
+  index: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
   }
 },
   { timestamps: false }
