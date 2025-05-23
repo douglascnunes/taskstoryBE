@@ -258,9 +258,9 @@ router.patch('/tasks/:taskid/instance/:instanceid', isAuth,
       .notEmpty().withMessage('Instance ID (param) is required.')
       .isInt().withMessage('Instance ID must be an integer.'),
 
-    body('finalDate')
-      .optional()
-      .isISO8601().withMessage('Invalid date format for finalDate.'),
+    // body('finalDate')
+    //   .optional()
+    //   .isISO8601().withMessage('Invalid date format for finalDate.'),
 
     body('completedOn')
       .optional()

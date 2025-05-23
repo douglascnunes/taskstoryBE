@@ -409,7 +409,7 @@ export const updateInstance = async (req, res, next) => {
 
   const { taskid, instanceid } = req.params;
   const userId = req.userId;
-  const { finalDate, completedOn, status, stepCompletionStatus } = req.body;
+  const { /*finalDate,*/ completedOn, status, stepCompletionStatus } = req.body;
 
   const transaction = await sequelize.transaction();
 
@@ -424,7 +424,7 @@ export const updateInstance = async (req, res, next) => {
       where: { id: instanceid, userId: req.userId }
     });
 
-    instance.finalDate = finalDate ?? instance.finalDate;
+    // instance.finalDate = finalDate ?? instance.finalDate;
     instance.completedOn = completedOn ?? instance.completedOn;
     instance.status = status ?? instance.status;
     instance.stepCompletionStatus = stepCompletionStatus ?? instance.stepCompletionStatus;
