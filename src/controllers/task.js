@@ -97,7 +97,7 @@ export const getTaskInstance = async (req, res, next) => {
         },
       ],
     });
-    console.log('[GET TASK + INSTANCE] Task title: ' + activity.title + '  InstanceId: ' + activity.task.taskInstances.map(s => s.id));
+    console.log('[GET TASK + INSTANCE] Task title: ' + activity.title + '  InstanceId: ' + instanceid);
     res.status(200).json({
       message: 'Fetched Activities successfully.',
       task: activity
@@ -286,6 +286,7 @@ export const upsertSteps = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.userId;
   const steps = req.body;
+
   const transaction = await sequelize.transaction();
 
   try {
@@ -328,13 +329,13 @@ export const upsertSteps = async (req, res, next) => {
 
     console.log('[UPSERT STEPS] TaskId: ' + task.id);
 
-
-
     await transaction.commit();
+
+    const fetchedSteps = await Step.findAll({ where: { taskId: id } })
 
     res.status(201).json({
       message: 'Steps updated successfully',
-      task: task,
+      steps: fetchedSteps,
     });
   } catch (error) {
     await transaction.rollback();

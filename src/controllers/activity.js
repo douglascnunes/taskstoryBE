@@ -342,7 +342,6 @@ export const createActivity = async (req, res, next) => {
 
 
 export const updateActivity = async (req, res, next) => {
-  console.log(req.body)
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));

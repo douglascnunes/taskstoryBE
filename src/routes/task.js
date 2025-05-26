@@ -100,7 +100,7 @@ router.patch('/tasks/:id', isAuth,
       !task.startPeriod && !task.endPeriod && !task.frequenceIntervalDays && !task.frequenceWeeklyDays &&
       !task.steps) {
       return res.status(400).json({
-        message: 'At least one field (title, description, keywords, importance, difficulty, startPeriod, endPeriod, frequenceIntervalDays, frequenceIntervalDays, frequenceWeeklyDays or steps) must be provided for update.'
+        message: 'At least one field (title, description, keywords, importance, difficulty, startPeriod, endPeriod, frequenceIntervalDays, frequenceWeeklyDays or steps) must be provided for update.'
       });
     }
     next();
@@ -154,7 +154,7 @@ router.patch('/tasks/:id', isAuth,
 
     body('frequenceIntervalDays')
       .optional()
-      .isInt(),
+      .isInt().withMessage('frequenceIntervalDays must be an integer.'),
 
     body('frequenceWeeklyDays')
       .optional()
@@ -167,18 +167,18 @@ router.patch('/tasks/:id', isAuth,
         return true;
       }),
 
-    body()
-      .custom((value, { req }) => {
-        if (!req.body.endPeriod && !req.body.frequenceIntervalDays && !req.body.frequenceWeeklyDays) {
-          throw new Error('endPeriod, frequenceIntervalDays or frequenceWeeklyDays must be provided.');
-        }
-        else if (!!req.body.frequenceIntervalDays && !!req.body.frequenceWeeklyDays) {
-          throw new Error('Either "frequenceIntervalDays" or "frequenceWeeklyDays" must be provided, but not both.');
-        };
+    body().custom((value, { req }) => {
+      if (!req.body.endPeriod && !req.body.frequenceIntervalDays && !req.body.frequenceWeeklyDays.length > 0) {
+        throw new Error('endPeriod, frequenceIntervalDays or frequenceWeeklyDays must be provided.');
+      };
+      if (!!req.body.frequenceIntervalDays && !!req.body.frequenceWeeklyDays) {
+        throw new Error('Either "frequenceIntervalDays" or "frequenceWeeklyDays" must be provided, but not both.');
+      };
 
-        return true;
-      }),
-  ], taskController.updateTask
+      return true;
+    }),
+  ],
+  taskController.updateTask
 );
 
 
