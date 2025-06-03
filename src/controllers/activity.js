@@ -54,7 +54,9 @@ export const getOverview = async (req, res, next) => {
         {
           model: Task,
           required: true,
-          attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
+          attributes: [
+            'id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'deletedInstances'
+          ],
           where: getTaskPeriodFilter(startdate, finaldate),
           include: [
             { model: Step, required: false },
@@ -65,6 +67,7 @@ export const getOverview = async (req, res, next) => {
                 finalDate: {
                   [Op.between]: [startdate, finaldate],
                 },
+                status: 'ACTIVE',
               },
             },
           ]

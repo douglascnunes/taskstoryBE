@@ -38,6 +38,10 @@ const Task = sequelize.define('task', {
     type: Sequelize.INTEGER,
     allowNull: true,
   },
+  deletedInstances: {
+    type: Sequelize.JSON,
+    allowNull: true
+  },
 },
   { timestamps: false }
 );

@@ -207,7 +207,7 @@ router.post('/tasks/:id/instance', isAuth,
       .isISO8601().withMessage('Invalid date format for finalDate.'),
 
     body('completedOn')
-      .optional()
+      .optional({ nullable: true })
       .isISO8601().withMessage('Invalid date format for completedOn.'),
 
     body('status')
@@ -263,7 +263,7 @@ router.patch('/tasks/:taskid/instance/:instanceid', isAuth,
     //   .isISO8601().withMessage('Invalid date format for finalDate.'),
 
     body('completedOn')
-      .optional()
+      .optional({ nullable: true })
       .isISO8601().withMessage('Invalid date format for completedOn.'),
 
     body('status')

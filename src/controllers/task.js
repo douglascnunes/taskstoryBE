@@ -278,6 +278,7 @@ export const updateTask = async (req, res, next) => {
 
 
 export const upsertSteps = async (req, res, next) => {
+  console.log('[UPSERT STEPS] Request body: ', req.body);
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -286,7 +287,7 @@ export const upsertSteps = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.userId;
   const steps = req.body;
-
+  console.log('steps: ', steps);
   const transaction = await sequelize.transaction();
 
   try {
@@ -380,6 +381,10 @@ export const createInstance = async (req, res, next) => {
       { transaction }
     );
 
+    if (newInstance.status === STATUS[3]) { // DELETED
+      task.deletedInstances = [...(task.deletedInstances || []), newInstance.finalDate];
+      await task.save({ transaction });
+    };
 
     await transaction.commit();
 
@@ -403,6 +408,7 @@ export const createInstance = async (req, res, next) => {
 
 
 export const updateInstance = async (req, res, next) => {
+  console.log('TESTANDO AQUI')
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -425,14 +431,20 @@ export const updateInstance = async (req, res, next) => {
       where: { id: instanceid, userId: req.userId }
     });
 
-    // instance.finalDate = finalDate ?? instance.finalDate;
-    instance.completedOn = completedOn ?? instance.completedOn;
+    instance.completedOn = completedOn ?? null;
     instance.status = status ?? instance.status;
     instance.stepCompletionStatus = stepCompletionStatus ?? instance.stepCompletionStatus;
+
+    if (instance.status === STATUS[3]) { // DELETED
+      task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
+      await task.save({ transaction });
+    };
 
     await instance.save({ transaction });
 
     await transaction.commit();
+
+    console.log('[UPDATE TASK INSTANCE] InstanceId: ' + instance.id + ', completedOn: ' + instance.completedOn);
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',
