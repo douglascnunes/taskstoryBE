@@ -2,7 +2,7 @@ import express from 'express';
 import { body } from 'express-validator';
 
 import isAuth from '../middleware/isAuth.js';
-import {PROCRASTINATION_TYPE} from '../util/enum.js';
+import { AVATAR, PROCRASTINATION_TYPE } from '../util/enum.js';
 import * as authController from '../controllers/auth.js';
 import User from '../models/user/user.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
@@ -48,7 +48,7 @@ router.post('/signup', [
     }),
 
   body('birthdate')
-    .isDate({ format: 'YYYY-MM-DD' }).withMessage('A data de nascimento deve estar no formato YYYY-MM-DD.')
+    .isDate({ format: 'YYYY-MM-DD' }).withMessage('A data de nascimento deve estar no formato YYYY-MM-DD.'),
   // .custom((value) => {
   //   const today = new Date();
   //   const birthdate = new Date(value);
@@ -58,6 +58,17 @@ router.post('/signup', [
   //   if (age > 120) { throw new Error('A idade informada não é válida.'); }
   //   return true;
   // }),
+
+  body('avatar')
+    .isString().withMessage('O avatar deve ser uma string.')
+    .custom((value) => {
+      const allAvatars = Object.values(AVATAR).flat(); // ex: ['warrior.png', 'wizard.png', ...]
+      if (!allAvatars.includes(value)) {
+        throw new Error('Avatar inválido.');
+      }
+      return true;
+    }),
+
 ],
   authController.signup);
 

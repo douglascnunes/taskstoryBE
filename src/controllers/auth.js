@@ -19,6 +19,7 @@ export const signup = async (req, res, next) => {
   const name = req.body.name;
   const email = req.body.email;
   const birthdate = req.body.birthdate;
+  const avatar = req.body.avatar || 'default.png';
   const hashedPassword = await bcrypt.hash(req.body.password, 12);
 
   try {
@@ -29,6 +30,7 @@ export const signup = async (req, res, next) => {
       email: email,
       dateBirth: birthdate, // Mudar o model User de dateBirth para birthdate
       password: hashedPassword,
+      avatar: avatar,
       userLevelId: userLevel1.id,
     });
 

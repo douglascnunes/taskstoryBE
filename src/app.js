@@ -10,6 +10,7 @@ import taskRoutes from './routes/task.js';
 import habitRoutes from './routes/habit.js';
 import areaOfLifeRoutes from './routes/areaOfLife.js';
 import keywordRouters from './routes/keyword.js';
+import userRouter from './routes/user.js';
 
 const app = express();
 
@@ -37,6 +38,7 @@ app.use('/api', taskRoutes);
 app.use('/api', habitRoutes);
 app.use('/api', areaOfLifeRoutes);
 app.use('/api', keywordRouters);
+app.use('/api', userRouter);
 
 app.use(controllerErrors);
 

@@ -3,7 +3,7 @@ import { validationResult as expValidatorRes } from 'express-validator';
 
 import sequelize from '../util/db.js';
 import { controllerErrorObj } from '../util/error.js';
-import { ACTIVITY_TYPE, PRIORITY_VALUES } from '../util/enum.js';
+import { ACTIVITY_TYPE, POINTS, PRIORITY_VALUES } from '../util/enum.js';
 
 import Activity from '../models/activity/activity.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
@@ -19,6 +19,10 @@ import Goal from '../models/goal/goal.js';
 import Challenge from '../models/goal/challenge.js';
 import GoalInstance from '../models/goal/goalInstance.js';
 import { getTaskPeriodFilter } from '../util/helpers/controller-task.js';
+import { applyUserPoints } from '../util/helpers/controller-user.js';
+import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
+import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
+
 
 
 export const getOverview = async (req, res, next) => {
@@ -284,64 +288,62 @@ export const getActivity = async (req, res, next) => {
 };
 
 
+
 export const createActivity = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   };
 
-  const {
-    title,
-    description,
-    keywords,
-    createdAt,
-    difficulty,
-    importance,
-  } = req.body;
-
+  const { keywords, ...rest } = req.body;
   const transaction = await sequelize.transaction();
 
   try {
-    const newActivity = await Activity.create({
-      title: title,
-      description: description ? description : null,
-      importance: importance,
-      difficulty: difficulty,
-      createdAt: createdAt,
-      userId: req.userId
-    },
-      { transaction }
-    );
+    let points = 0;
 
-    const keywordsFetched = await Keyword.findAll({
-      where: {
-        id: keywords,
-        userId: {
-          [Op.or]: [req.userId, null]
-        }
-      }
-    },
-      { transaction }
-    );
-    await newActivity.setKeywords(keywordsFetched, { transaction });
+    const newActivity = await Activity.create({
+      title: rest.title,
+      description: rest.description ?? null,
+      importance: rest.importance,
+      difficulty: rest.difficulty,
+      createdAt: rest.createdAt,
+      userId: req.userId
+    }, { transaction });
+
+    points += POINTS.ACTIVITY.CREATE;
+    if (rest.description) points += POINTS.ACTIVITY.DESCRIPTION;
+
+    const { oldKeywords, newKeywords } = await updateActivityKeywords({
+      activity: newActivity,
+      newKeywordIds: keywords,
+      userId: req.userId,
+      transaction
+    });
+
+    points += calculateKeywordPoints({
+      oldKeywords,
+      newKeywords,
+      pointValue: POINTS.ACTIVITY.KEYWORD,
+      maxCount: 3
+    });
+
+    await applyUserPoints({ userId: req.userId, points, transaction });
 
     await transaction.commit();
 
-    console.log('[CREATE ACTIVITY] title:' + newActivity.title + ', desc:' + newActivity.description)
+    console.log('[CREATE ACTIVITY] title:' + newActivity.title + ', Points:' + points);
+
     res.status(201).json({
       message: 'Activity created successfully!',
       activity: newActivity,
     });
-  }
-  catch (err) {
+  } catch (err) {
     await transaction.rollback();
-
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
+    if (!err.statusCode) err.statusCode = 500;
     next(err);
   }
 };
+
 
 
 export const updateActivity = async (req, res, next) => {
@@ -350,60 +352,46 @@ export const updateActivity = async (req, res, next) => {
     return next(controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
 
-  const {
-    activityId,
-    title,
-    description,
-    keywords,
-    importance,
-    difficulty,
-    createAt,
-  } = req.body;
-
+  const { activityId, keywords, ...rest } = req.body;
   const transaction = await sequelize.transaction();
 
   try {
-    const updatedActivity = await Activity.findOne({
-      where: {
-        id: activityId,
-        userId: req.userId,
-      },
+    let points = 0;
 
+    const activity = await Activity.findOne({
+      where: { id: activityId, userId: req.userId, },
     });
 
-    if (!updatedActivity || updatedActivity.status === 'SPECIALIZED') {
+    if (!activity || activity.status === 'SPECIALIZED') {
       return res.status(404).json({ message: 'Activity not found.' });
     };
 
-    const updatedFields = {};
+    // ATUALIZAÇÃO DOS ATRIBUTOS DA ATIVIDADE
+    if (rest.description && !activity.description) points += POINTS.ACTIVITY.DESCRIPTION;
+    const activityUpdateData = buildActivityUpdateData(rest, req.userId);
+    Object.assign(activity, activityUpdateData);
+    await activity.save({ transaction });
 
-    if (title) updatedFields.title = title;
-
-    if (description) updatedFields.description = description;
-
-    if (importance) updatedFields.importance = importance;
-
-    if (difficulty) updatedFields.difficulty = difficulty;
-
-    if (createAt) updatedFields.createAt = createAt;
-
-    await updatedActivity.update(
-      updatedFields,
-      { transaction }
-    );
-
-
-    const keywordsFetched = await Keyword.findAll({
-      where: {
-        id: keywords,
-        userId: {
-          [Op.or]: [req.userId, null]
-        }
-      }
+    // ATUALIZAÇÃO DAS PALAVRAS-CHAVE
+    const { oldKeywords, newKeywords } = await updateActivityKeywords({
+      activity,
+      newKeywordIds: keywords,
+      userId,
+      transaction
     });
-    await updatedActivity.setKeywords(keywordsFetched, { transaction });
+
+    points += calculateKeywordPoints({
+      oldKeywords,
+      newKeywords,
+      pointValue: POINTS.ACTIVITY.KEYWORD,
+      maxCount: 3
+    });
+
+    await applyUserPoints({ userId: req.userId, points, transaction, });
 
     await transaction.commit();
+
+    console.log('[UPDATE ACTIVITY] title: ' + updatedActivity.title + ', Points: ' + points);
 
     res.status(201).json({
       message: 'Activity updated successfully!',

@@ -107,3 +107,36 @@ export const USER_AREAOFLIFE_CONFIG = [
   'DESIRABLE',
   'MOSTPRACTICED',
 ];
+
+
+export const AVATAR = {
+  WARRIOR: ['warrior.png'],
+  WIZARD: ['wizard.png'],
+  ARCHER: ['archer.png'],
+  THIEF: ['thief.png'],
+  PIRATE: ['pirate.png'],
+  BLUE_SNAIL: ['blue_snail.png'],
+  ORANGE_MUSHROOM: ['orange_mushroom.png'],
+  SLIME: ['slime.png'],
+  PIG: ['pig.png'],
+}
+
+
+export const POINTS = {
+  ACTIVITY: {
+    CREATE: 1,
+    // UPDATE: 1,
+    DONE: 1,
+    DESCRIPTION: 1,
+    KEYWORD: 1,
+  },
+  TASK: {
+    CREATE: 1,
+    DONE: 1,
+    PERIOD_AND_FREQUENCY: 1,
+    STEP: {
+      CREATE: 1,
+      DONE: 1,
+    },
+  },
+}

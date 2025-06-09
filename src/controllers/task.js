@@ -6,11 +6,13 @@ import Activity from '../models/activity/activity.js';
 import Keyword from '../models/areaOfLife/keyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
-import { STATUS, ACTIVITY_TYPE } from '../util/enum.js';
+import { STATUS, ACTIVITY_TYPE, POINTS, INSTANCE_STATUS } from '../util/enum.js';
 import { Op } from 'sequelize';
 import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
-import { buildTaskUpdateData } from '../util/helpers/controller-task.js';
+import { buildTaskUpdateData, calculateStepCompletionPoints, isSettingPeriodOrFrequencyForFirstTime, sanitizeStepCompletionStatus } from '../util/helpers/controller-task.js';
 import TaskInstance from '../models/task/taskInstance.js';
+import { applyUserPoints } from '../util/helpers/controller-user.js';
+import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
 
 
 
@@ -118,7 +120,7 @@ export const createTask = async (req, res, next) => {
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
-  };
+  }
 
   const {
     title,
@@ -137,60 +139,71 @@ export const createTask = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const newActivity = await Activity.create({
-      title: title,
-      description: description,
-      importance: importance,
-      difficulty: difficulty,
-      createdAt: createdAt,
+    let points = 0;
+
+    // 1. Criar atividade
+    const activity = await Activity.create({
+      title,
+      description,
+      importance,
+      difficulty,
+      createdAt,
       type: ACTIVITY_TYPE[1], // TASK
       status: STATUS[1], // SPECIALIZED
       userId: req.userId
-    },
-      { transaction }
-    );
+    }, { transaction });
 
-    const keywordsFetched = await Keyword.findAll({
-      where: {
-        id: keywords,
-        userId: {
-          [Op.or]: [req.userId, null]
-        }
-      }
-    },
-      { transaction }
-    );
+    points += POINTS.ACTIVITY.CREATE;
+    if (description) points += POINTS.ACTIVITY.DESCRIPTION;
 
-    await newActivity.setKeywords(keywordsFetched, { transaction });
+    // 2. Atualizar keywords e pontuar
+    const { oldKeywords, newKeywords } = await updateActivityKeywords({
+      activity,
+      newKeywordIds: keywords,
+      userId: req.userId,
+      transaction
+    });
 
-    const newTask = await Task.create(
-      {
-        activityId: newActivity.id,
-        startPeriod: startPeriod,
-        endPeriod: endPeriod,
-        frequenceIntervalDays: frequenceIntervalDays,
-        frequenceWeeklyDays: frequenceWeeklyDays,
-        userId: req.userId
-      },
-      { transaction }
-    );
+    points += calculateKeywordPoints({
+      oldKeywords,
+      newKeywords,
+      pointValue: POINTS.ACTIVITY.KEYWORD,
+      maxCount: 3
+    });
 
-    if (steps) {
+    // 3. Criar task vinculada
+    const hasPeriodOrFrequency = startPeriod || endPeriod || frequenceIntervalDays || (frequenceWeeklyDays?.length > 0);
+    const newTask = await Task.create({
+      activityId: activity.id,
+      startPeriod,
+      endPeriod,
+      frequenceIntervalDays,
+      frequenceWeeklyDays,
+      userId: req.userId
+    }, { transaction });
+
+    points += POINTS.TASK.CREATE;
+    if (hasPeriodOrFrequency) points += POINTS.TASK.PERIOD_AND_FREQUENCY;
+
+    // 4. Criar steps, se houver
+    if (steps && steps.length > 0) {
       for (const step of steps) {
         const newStep = await Step.create(
-          {
-            description: step.description,
-            index: step.index
-          },
+          { description: step.description, index: step.index },
           { transaction }
         );
         await newTask.addStep(newStep, { transaction });
-      };
-    };
+      }
+      points += steps.length * POINTS.TASK.STEP.CREATE;
+    }
 
+    // 5. Aplicar pontos
+    await applyUserPoints({ userId: req.userId, points, transaction });
+
+    // 6. Commit e resposta
     await transaction.commit();
 
-    console.log('[CREATE TASK] title:' + newActivity.title + ', desc:' + newActivity.description)
+    console.log(`[CREATE TASK] Title: "${activity.title}", Points: ${points}`);
 
     res.status(201).json({
       message: 'Task created successfully',
@@ -198,7 +211,7 @@ export const createTask = async (req, res, next) => {
     });
   } catch (error) {
     await transaction.rollback();
-    console.log(error.message)
+    console.error(error.message);
 
     res.status(500).json({
       message: 'Creating task failed',
@@ -210,67 +223,78 @@ export const createTask = async (req, res, next) => {
 
 
 export const updateTask = async (req, res, next) => {
-
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
-  };
+  }
 
   const { id } = req.params;
   const userId = req.userId;
   const { keywords, ...rest } = req.body;
+
   const transaction = await sequelize.transaction();
 
   try {
-    const activity = await Activity.findOne({
-      where: { id, userId },
-      transaction,
-    });
+    let points = 0;
 
+    // Buscar atividade e validar
+    const activity = await Activity.findOne({ where: { id, userId }, transaction });
     if (!activity) {
-      return res.status(404).json({ message: 'Task not found.' });
-    };
+      return res.status(404).json({ message: `Activity with ID ${id} not found.` });
+    }
 
-    const activityUpdateData = buildActivityUpdateData(rest, userId);
-    Object.assign(activity, activityUpdateData);
+    // Atualização da atividade
+    if (rest.description && !activity.description) {
+      points += POINTS.ACTIVITY.DESCRIPTION;
+    }
+
+    Object.assign(activity, buildActivityUpdateData(rest, userId));
     await activity.save({ transaction });
 
-    const keywordsFetched = await Keyword.findAll({
-      where: {
-        id: keywords,
-        userId: { [Op.or]: [req.userId, null] }
-      }
-    }, { transaction }
-    );
-
-    await activity.setKeywords(keywordsFetched, { transaction });
-
-    const task = await Task.findOne({
-      where: { id: activity.id, userId },
-      transaction,
+    // Atualização de palavras-chave
+    const { oldKeywords, newKeywords } = await updateActivityKeywords({
+      activity,
+      newKeywordIds: keywords,
+      userId,
+      transaction
     });
-    const taskUpdateData = buildTaskUpdateData(rest);
-    taskUpdateData.startPeriod = rest.startPeriod ?? null;
-    taskUpdateData.endPeriod = rest.endPeriod ?? null;
-    taskUpdateData.frequenceIntervalDays = rest.frequenceIntervalDays ?? null;
-    taskUpdateData.frequenceWeeklyDays = rest.frequenceWeeklyDays ?? null;
-    Object.assign(task, taskUpdateData);
+
+    points += calculateKeywordPoints({
+      oldKeywords,
+      newKeywords,
+      pointValue: POINTS.ACTIVITY.KEYWORD,
+      maxCount: 3
+    });
+
+    // Buscar tarefa vinculada
+    const task = await Task.findOne({ where: { id: activity.id, userId } });
+    if (!task) {
+      return res.status(404).json({ message: `Related Task not found for activity ID ${id}.` });
+    }
+
+    if (isSettingPeriodOrFrequencyForFirstTime(task, rest)) {
+      points += POINTS.TASK.PERIOD_AND_FREQUENCY;
+    }
+
+    // Atualizar tarefa
+    Object.assign(task, buildTaskUpdateData(rest));
     await task.save({ transaction });
 
+    await applyUserPoints({ userId, points, transaction });
     await transaction.commit();
 
-    console.log('[UPDATE TASK] id:' + activity.id + ', title:' + activity.title)
+    console.log(`[UPDATE TASK] Title: "${activity.title}", Points: ${points}`);
 
-    res.status(201).json({
+    res.status(200).json({
       message: 'Task updated successfully',
       task: activity,
     });
   } catch (error) {
     await transaction.rollback();
-    console.log(error.message)
+    console.error('[UPDATE TASK ERROR]', error.message);
 
     res.status(500).json({
-      message: 'Updated task failed',
+      message: 'Updating task failed',
       error: error.message,
     });
   }
@@ -278,7 +302,6 @@ export const updateTask = async (req, res, next) => {
 
 
 export const upsertSteps = async (req, res, next) => {
-  console.log('[UPSERT STEPS] Request body: ', req.body);
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -287,29 +310,36 @@ export const upsertSteps = async (req, res, next) => {
   const { id } = req.params;
   const userId = req.userId;
   const steps = req.body;
-  console.log('steps: ', steps);
+
   const transaction = await sequelize.transaction();
 
   try {
+    let points = 0;
+
     const task = await Task.findOne({
       where: { id, userId },
       transaction,
     });
-    if (!task) return res.status(404).json({ message: 'Related Task not found.' });
 
+    if (!task) {
+      return res.status(404).json({ message: 'Related Task not found.' });
+    }
 
     const existingSteps = await Step.findAll({
       where: { taskId: task.id },
       transaction,
     });
 
+    const existingCount = Math.min(existingSteps.length, 3);
     const receivedIds = steps.filter(s => s.id).map(s => s.id);
     const stepsToDelete = existingSteps.filter(s => !receivedIds.includes(s.id));
 
+    // Deletar steps removidos
     for (const step of stepsToDelete) {
       await step.destroy({ transaction });
     }
 
+    // Atualizar ou criar steps
     for (const step of steps) {
       if (step.id) {
         const existingStep = existingSteps.find(s => s.id === step.id);
@@ -325,22 +355,37 @@ export const upsertSteps = async (req, res, next) => {
           index: step.index,
           taskId: task.id,
         }, { transaction });
-      };
-    };
+      }
+    }
 
-    console.log('[UPSERT STEPS] TaskId: ' + task.id);
+    const updatedSteps = await Step.findAll({
+      where: { taskId: task.id },
+      transaction,
+    });
+
+    const updatedCount = Math.min(updatedSteps.length, 3);
+
+    // Aplicar pontuação pela diferença de quantidade
+    if (updatedCount > existingCount && updatedCount <= 3) {
+      points += (updatedCount - existingCount) * POINTS.TASK.STEP.CREATE;
+    } else if (updatedCount < existingCount && updatedCount < 3) {
+      points -= (existingCount - updatedCount) * POINTS.TASK.STEP.CREATE;
+    }
+
+    // Aplicar os pontos ao usuário
+    await applyUserPoints({ userId, points, transaction });
 
     await transaction.commit();
 
-    const fetchedSteps = await Step.findAll({ where: { taskId: id } })
+    console.log('[UPSERT STEPS] TaskId: ' + task.id + ', Points: ' + points);
 
     res.status(201).json({
       message: 'Steps updated successfully',
-      steps: fetchedSteps,
+      steps: updatedSteps,
     });
   } catch (error) {
     await transaction.rollback();
-    console.log(error.message);
+    console.error(error.message);
 
     res.status(500).json({
       message: 'Updated Steps failed',
@@ -348,6 +393,7 @@ export const upsertSteps = async (req, res, next) => {
     });
   }
 };
+
 
 
 export const createInstance = async (req, res, next) => {
@@ -363,36 +409,44 @@ export const createInstance = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    const task = await Task.findOne({
-      where: { id: id, userId },
-      transaction,
-    });
+    let points = 0;
+
+    const task = await Task.findOne({ where: { id: id, userId } });
+
     if (!task) return res.status(404).json({ message: 'Related Task not found.' });
 
+    const sanitizedStepStatus = await sanitizeStepCompletionStatus(stepCompletionStatus ?? [], transaction);
 
-    const newInstance = await TaskInstance.create({
-      finalDate: finalDate,
+    const stepPoints = calculateStepCompletionPoints([], sanitizedStepStatus);
+    points += stepPoints;
+
+    const instance = await TaskInstance.create({
+      finalDate,
       completedOn: completedOn ?? null,
-      status: status ?? null,
-      stepCompletionStatus: stepCompletionStatus ?? null,
-      userId: req.userId,
+      status: status ?? INSTANCE_STATUS[0], // ACTIVE,
+      stepCompletionStatus: sanitizedStepStatus.length > 0 ? sanitizedStepStatus : [],
+      userId,
       taskId: task.id
     },
       { transaction }
     );
+    if (completedOn) points += POINTS.TASK.DONE;
 
-    if (newInstance.status === STATUS[3]) { // DELETED
-      task.deletedInstances = [...(task.deletedInstances || []), newInstance.finalDate];
+    if (instance.status === INSTANCE_STATUS[2]) { // DELETED
+      task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
+      if (completedOn) points -= POINTS.TASK.DONE;
       await task.save({ transaction });
     };
 
+    await applyUserPoints({ userId, points, transaction });
+
     await transaction.commit();
 
-    console.log('[CREATE TASK INSTANCE] finalDate: ' + newInstance.finalDate);
+    console.log('[CREATE TASK INSTANCE] finalDate: ' + new Date(instance.finalDate).toDateString() + ', Points: ' + points);
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',
-      instance: newInstance,
+      instance: instance,
     });
   } catch (error) {
     await transaction.rollback();
@@ -408,7 +462,6 @@ export const createInstance = async (req, res, next) => {
 
 
 export const updateInstance = async (req, res, next) => {
-  console.log('TESTANDO AQUI')
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -416,35 +469,45 @@ export const updateInstance = async (req, res, next) => {
 
   const { taskid, instanceid } = req.params;
   const userId = req.userId;
-  const { /*finalDate,*/ completedOn, status, stepCompletionStatus } = req.body;
+  const { completedOn, status, stepCompletionStatus } = req.body;
 
   const transaction = await sequelize.transaction();
 
   try {
-    const task = await Task.findOne({
-      where: { id: taskid, userId },
-    });
+    let points = 0;
+
+    const task = await Task.findOne({ where: { id: taskid, userId } });
     if (!task) return res.status(404).json({ message: 'Related Task not found.' });
 
+    const instance = await TaskInstance.findOne({ where: { id: instanceid, userId } });
+    if (!instance) return res.status(404).json({ message: 'TaskInstance not found.' });
 
-    const instance = await TaskInstance.findOne({
-      where: { id: instanceid, userId: req.userId }
-    });
+    const oldStepStatus = instance.stepCompletionStatus || [];
+    const sanitizedStepStatus = await sanitizeStepCompletionStatus(stepCompletionStatus ?? oldStepStatus, transaction);
+    const stepPoints = calculateStepCompletionPoints(oldStepStatus, sanitizedStepStatus);
+    points += stepPoints;
 
+    const wasCompleted = !!instance.completedOn;
+    const isNowCompleted = !!completedOn;
+    if (!wasCompleted && isNowCompleted) points += POINTS.TASK.DONE;
+    if (wasCompleted && !isNowCompleted) points -= POINTS.TASK.DONE;
+    
     instance.completedOn = completedOn ?? null;
     instance.status = status ?? instance.status;
-    instance.stepCompletionStatus = stepCompletionStatus ?? instance.stepCompletionStatus;
+    instance.stepCompletionStatus = sanitizedStepStatus.length > 0 ? sanitizedStepStatus : [];
 
-    if (instance.status === STATUS[3]) { // DELETED
+    if (instance.status === STATUS[3]) {
       task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
       await task.save({ transaction });
     };
 
     await instance.save({ transaction });
 
+    await applyUserPoints({ userId, points, transaction });
+
     await transaction.commit();
 
-    console.log('[UPDATE TASK INSTANCE] InstanceId: ' + instance.id + ', completedOn: ' + instance.completedOn);
+    console.log('[UPDATE TASK INSTANCE] FinalDate: ', new Date(instance.finalDate).toDateString(), 'Points:', points);
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',

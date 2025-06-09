@@ -39,6 +39,11 @@ const User = sequelize.define('user', {
     type: Sequelize.DATE,
     allowNull: false,
   },
+  avatar: {
+    type: Sequelize.STRING,
+    allowNull: false,
+    defaultValue: "default.png",
+  },
   totalLevelPoints: {
     type: Sequelize.INTEGER,
     allowNull: false,
