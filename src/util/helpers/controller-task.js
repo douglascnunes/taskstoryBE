@@ -41,12 +41,8 @@ export function buildTaskUpdateData(data) {
   const fields = ['startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'steps'];
   const updateData = {};
 
-  for (const field of fields) {
-    if (data[field] !== undefined) {
-      updateData[field] = data[field] ?? null;
-    }
-  }
-
+  for (const field of fields) updateData[field] = data[field] ?? null;
+  console.log('updateData', updateData)
   return updateData;
 }
 

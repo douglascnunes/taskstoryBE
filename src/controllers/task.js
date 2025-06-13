@@ -117,6 +117,7 @@ export const getTaskInstance = async (req, res, next) => {
 
 
 export const createTask = async (req, res, next) => {
+  console.log(req.body)
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -175,10 +176,10 @@ export const createTask = async (req, res, next) => {
     const hasPeriodOrFrequency = startPeriod || endPeriod || frequenceIntervalDays || (frequenceWeeklyDays?.length > 0);
     const newTask = await Task.create({
       activityId: activity.id,
-      startPeriod,
-      endPeriod,
-      frequenceIntervalDays,
-      frequenceWeeklyDays,
+      startPeriod: startPeriod ?? null,
+      endPeriod: endPeriod ?? null,
+      frequenceIntervalDays: frequenceIntervalDays ?? null,
+      frequenceWeeklyDays: frequenceWeeklyDays ?? null,
       userId: req.userId
     }, { transaction });
 
@@ -252,19 +253,22 @@ export const updateTask = async (req, res, next) => {
     await activity.save({ transaction });
 
     // Atualização de palavras-chave
-    const { oldKeywords, newKeywords } = await updateActivityKeywords({
-      activity,
-      newKeywordIds: keywords,
-      userId,
-      transaction
-    });
+    if (keywords) {
+      const { oldKeywords, newKeywords } = await updateActivityKeywords({
+        activity,
+        newKeywordIds: keywords,
+        userId,
+        transaction
+      });
 
-    points += calculateKeywordPoints({
-      oldKeywords,
-      newKeywords,
-      pointValue: POINTS.ACTIVITY.KEYWORD,
-      maxCount: 3
-    });
+      points += calculateKeywordPoints({
+        oldKeywords,
+        newKeywords,
+        pointValue: POINTS.ACTIVITY.KEYWORD,
+        maxCount: 3
+      });
+    }
+
 
     // Buscar tarefa vinculada
     const task = await Task.findOne({ where: { id: activity.id, userId } });
@@ -491,12 +495,14 @@ export const updateInstance = async (req, res, next) => {
     const isNowCompleted = !!completedOn;
     if (!wasCompleted && isNowCompleted) points += POINTS.TASK.DONE;
     if (wasCompleted && !isNowCompleted) points -= POINTS.TASK.DONE;
-    
+
     instance.completedOn = completedOn ?? null;
     instance.status = status ?? instance.status;
     instance.stepCompletionStatus = sanitizedStepStatus.length > 0 ? sanitizedStepStatus : [];
 
     if (instance.status === STATUS[3]) {
+      if (instance.completedOn) points -= POINTS.TASK.DONE;
+      points -= instance.stepCompletionStatus.length * POINTS.TASK.STEP.DONE;
       task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
       await task.save({ transaction });
     };

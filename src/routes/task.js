@@ -122,7 +122,7 @@ router.patch('/tasks/:id', isAuth,
 
     body('keywords')
       .optional()
-      .isArray().withMessage('Keywords must be a array.'),
+      .isArray({ min: 1 }).withMessage('Must select at least 1 keyword.'),
 
     body('importance')
       .optional()
