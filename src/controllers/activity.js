@@ -11,13 +11,7 @@ import Keyword from '../models/areaOfLife/keyword.js';
 import ActivityKeyword from '../models/activity/activityKeyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
-import Habit from '../models/habit/habit.js';
-import HabitLevel from '../models/habit/habitLevel.js';
-import HabitPhase from '../models/habit/habitPhase.js';
 import TaskInstance from '../models/task/taskInstance.js';
-import Goal from '../models/goal/goal.js';
-import Challenge from '../models/goal/challenge.js';
-import GoalInstance from '../models/goal/goalInstance.js';
 import { getTaskPeriodFilter } from '../util/helpers/controller-task.js';
 import { applyUserPoints } from '../util/helpers/controller-user.js';
 import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
@@ -26,109 +20,42 @@ import { buildActivityUpdateData } from '../util/helpers/controller-activity.js'
 
 
 export const getOverview = async (req, res, next) => {
-  try {
-    let { startdate, finaldate } = req.query;
-    startdate = startdate ? new Date(decodeURIComponent(startdate)) : null;
-    finaldate = finaldate ? new Date(decodeURIComponent(finaldate)) : null;
-
-    if (!startdate) {
-      startdate = new Date();
-      startdate.setMonth(startdate.getMonth() - 2);
-    }
-    if (!finaldate) {
-      finaldate = new Date();
-      finaldate.setMonth(finaldate.getMonth() + 2);
-    }
-    if (startdate > finaldate) {
-      return res.status(400).json({ message: 'startDate deve ser anterior a finalDate.' });
-    }
-
-    const activities = await Activity.findAll({
-      where: {
-        userId: req.userId,
-        type: ACTIVITY_TYPE[1], //'SPECIALIZED'
-      },
-      include: [
-        {
-          model: Keyword,
-          required: true,
-          attributes: ['name', 'colorAngle'],
-          through: { attributes: [] },
-        },
-        {
-          model: Task,
-          required: true,
-          attributes: [
-            'id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'deletedInstances'
-          ],
-          where: getTaskPeriodFilter(startdate, finaldate),
-          include: [
-            { model: Step, required: false },
-            {
-              model: TaskInstance,
-              required: false,
-              where: {
-                finalDate: {
-                  [Op.between]: [startdate, finaldate],
-                },
-                status: 'ACTIVE',
-              },
-            },
-          ]
-        },
-      ]
-    },
-      {
-        model: Habit,
-        required: false,
-        include: [
-          { model: HabitLevel, required: true },
-          { model: HabitPhase, require: true }
-        ]
-      },
-      {
-        model: Goal,
-        required: false,
-        include: [
-          { model: Challenge, required: false },
-          { model: GoalInstance, required: false }
-        ]
-      },
-    );
-
-    console.log('[GET OVERVIEW] Activities quant: ' + activities.length);
-    res.status(200).json({
-      message: 'Fetched Overview Activities successfully.',
-      activities: activities,
-      startdate: startdate,
-      finaldate: finaldate,
-    });
-  }
-  catch (err) {
-    if (!err.statusCode) {
-      err.statusCode = 500;
-    }
-    next(err);
-  }
-};
-
-export const getFilteredActivities = async (req, res, next) => {
-  const { status, type, keyword, areaoflife, searchtext, priority } = req.query;
+  const { condiction, type, keyword, areaoflife, searchtext, priority, startdate, finaldate } = req.query;
 
   const decodedType = type ? decodeURIComponent(type) : null;
   const decodedAreaOfLife = areaoflife ? decodeURIComponent(areaoflife) : null;
   const decodedKeyword = keyword ? decodeURIComponent(keyword) : null;
   const decodedSearchText = searchtext ? decodeURIComponent(searchtext) : null;
   const decodedPriority = priority ? decodeURIComponent(priority) : null;
-
+  const decodedStartDate = startdate ? decodeURIComponent(startdate) : null;
+  const decodedFinalDate = finaldate ? decodeURIComponent(finaldate) : null;
 
   try {
     let filters = {};
 
+    // Start and End Overview limits
+    let startdateDate = decodedStartDate ? new Date(decodeURIComponent(decodedStartDate)) : null;
+    let finaldateDate = decodedFinalDate ? new Date(decodeURIComponent(decodedFinalDate)) : null;
+    console.log('startdate', startdateDate)
+    console.log('finaldateDate', finaldateDate)
+
+    if (!startdateDate) {
+      startdateDate = new Date();
+      startdateDate.setMonth(startdateDate.getMonth() - 2);
+    }
+    if (!finaldateDate) {
+      finaldateDate = new Date();
+      finaldateDate.setMonth(finaldateDate.getMonth() + 2);
+    }
+    if (startdateDate > finaldateDate) {
+      return res.status(400).json({ message: 'startDate deve ser anterior a finalDate.' });
+    }
+
+
     // Search Status
-    if (status) {
-      const statusArray = status.split(',').map(s => s.toUpperCase());
-      filters.currentStatus = statusArray;
+    if (condiction) {
+      const condictionArray = condiction.split(',').map(s => s.toUpperCase());
+      // filters.currentCondiction = condictionArray;
     }
 
     // Search Activity Type
@@ -150,8 +77,6 @@ export const getFilteredActivities = async (req, res, next) => {
         foundAreaOfLifesIds = foundAreaOfLifes.map(p => p.id);
       };
     };
-
-
 
     // Search Keyword
     if (decodedKeyword || decodedAreaOfLife) {
@@ -191,39 +116,52 @@ export const getFilteredActivities = async (req, res, next) => {
       ];
     };
 
+    console.log('filter', filters)
+
     const activities = await Activity.findAll({
-      where: filters,
+      where: {
+        ...(Object.keys(filters).length > 0 && filters),
+        userId: req.userId,
+        type: ACTIVITY_TYPE[1], //'SPECIALIZED'
+      },
       include: [
         {
+          model: Keyword,
+          required: true,
+          attributes: ['name', 'colorAngle'],
+          through: { attributes: [] },
+        },
+        {
           model: Task,
-          required: false,
+          required: true,
+          attributes: [
+            'id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'deletedInstances'
+          ],
+          where: getTaskPeriodFilter(startdateDate, finaldateDate),
           include: [
             { model: Step, required: false },
-            { model: TaskInstance, required: false }
-          ]
-        },
-        {
-          model: Habit,
-          required: false,
-          include: [
-            { model: HabitLevel, required: true },
-            { model: HabitPhase, require: true }
-          ]
-        },
-        {
-          model: Goal,
-          required: false,
-          include: [
-            { model: Challenge, required: false },
-            { model: GoalInstance, required: false }
+            {
+              model: TaskInstance,
+              required: false,
+              where: {
+                finalDate: {
+                  [Op.between]: [startdateDate, finaldateDate],
+                },
+                status: 'ACTIVE',
+              },
+            },
           ]
         },
       ]
-    });
+    }
+    );
 
+    console.log('[GET OVERVIEW] Activities quant: ' + activities.length);
     res.status(200).json({
-      message: 'Fetched Activities successfully.',
-      activities: activities
+      message: 'Fetched Overview Activities successfully.',
+      activities: activities,
+      startdate: startdate,
+      finaldate: finaldate,
     });
   }
   catch (err) {
@@ -231,8 +169,10 @@ export const getFilteredActivities = async (req, res, next) => {
       err.statusCode = 500;
     }
     next(err);
-  };
+  }
 };
+
+
 
 
 export const getActivity = async (req, res, next) => {

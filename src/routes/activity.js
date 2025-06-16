@@ -7,8 +7,6 @@ import { DIFFICULTY_NAMES, IMPORTANCE_NAMES } from '../util/enum.js';
 
 const router = express.Router();
 
-router.get('/activities', isAuth, activityController.getFilteredActivities);
-
 router.get('/overview', isAuth, activityController.getOverview);
 
 router.get('/activities/:id', isAuth, activityController.getActivity);
