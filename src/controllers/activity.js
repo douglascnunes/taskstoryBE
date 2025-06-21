@@ -128,7 +128,7 @@ export const getOverview = async (req, res, next) => {
         {
           model: Keyword,
           required: true,
-          attributes: ['name', 'colorAngle'],
+          attributes: ['id', 'name', 'colorAngle'],
           through: { attributes: [] },
         },
         {
