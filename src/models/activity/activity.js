@@ -54,11 +54,21 @@ const Activity = sequelize.define('activity', {
 Activity.hasMany(ActivityStatusHistory, { onDelete: 'CASCADE' });
 ActivityStatusHistory.belongsTo(Activity);
 
-Activity.hasMany(Dependency, { foreignKey: 'dependentActivityId', onDelete: 'CASCADE' });
-Dependency.belongsTo(Activity, { foreignKey: 'dependentActivityId' });
+Activity.belongsToMany(Activity, {
+  as: 'Dependents',
+  through: Dependency,
+  foreignKey: 'dependencyId',
+  otherKey: 'activityId',
+  allowNull: true,
+});
 
-Activity.hasMany(Dependency, { foreignKey: 'requiredActivityId', onDelete: 'CASCADE' });
-Dependency.belongsTo(Activity, { foreignKey: 'requiredActivityId' });
+Activity.belongsToMany(Activity, {
+  as: 'Dependencies',
+  through: Dependency,
+  foreignKey: 'activityId',
+  otherKey: 'dependencyId',
+  allowNull: true,
+});
 
 Activity.belongsToMany(Keyword, { through: ActivityKeyword });
 Keyword.belongsToMany(Activity, { through: ActivityKeyword });

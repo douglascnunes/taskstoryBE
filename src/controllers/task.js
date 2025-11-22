@@ -7,7 +7,6 @@ import Keyword from '../models/areaOfLife/keyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
 import { STATUS, ACTIVITY_TYPE, POINTS, INSTANCE_STATUS } from '../util/enum.js';
-import { Op } from 'sequelize';
 import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
 import { buildTaskUpdateData, calculateStepCompletionPoints, isSettingPeriodOrFrequencyForFirstTime, sanitizeStepCompletionStatus } from '../util/helpers/controller-task.js';
 import TaskInstance from '../models/task/taskInstance.js';

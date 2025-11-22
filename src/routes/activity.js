@@ -1,5 +1,5 @@
 import express from 'express';
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 import isAuth from '../middleware/isAuth.js';
 import * as activityController from '../controllers/activity.js';
@@ -106,6 +106,18 @@ router.patch('/activities/:id', isAuth,
       }),
   ],
   activityController.updateActivity
+);
+
+router.post('/activities/:id/dependencies', isAuth,
+  [
+    param('id')
+      .notEmpty().withMessage('Activity ID (param) is required.')
+      .isInt().withMessage('Activity ID must be an integer.'),
+    body('dependencies')
+      .optional()
+      .isArray().withMessage('Dependencies must be an array.'),
+  ],
+  activityController.upsertDependencies
 );
 
 export default router;

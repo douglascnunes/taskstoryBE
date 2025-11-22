@@ -348,3 +348,97 @@ export const updateActivity = async (req, res, next) => {
     next(err);
   }
 };
+
+
+export const upsertDependencies = async (req, res, next) => {
+  const errors = expValidatorRes(req);
+  if (!errors.isEmpty()) {
+    return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+  }
+
+  const { id } = req.params;
+  const userId = req.userId;
+  const dependencies = req.body;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    let points = 0;
+
+    const task = await Task.findOne({
+      where: { id, userId },
+      transaction,
+    });
+
+    if (!task) {
+      return res.status(404).json({ message: 'Related Task not found.' });
+    }
+
+    const existingSteps = await Step.findAll({
+      where: { taskId: task.id },
+      transaction,
+    });
+
+    const existingCount = Math.min(existingSteps.length, 3);
+    const receivedIds = steps.filter(s => s.id).map(s => s.id);
+    const stepsToDelete = existingSteps.filter(s => !receivedIds.includes(s.id));
+
+    // Deletar steps removidos
+    for (const step of stepsToDelete) {
+      await step.destroy({ transaction });
+    }
+
+    // Atualizar ou criar steps
+    for (const step of steps) {
+      if (step.id) {
+        const existingStep = existingSteps.find(s => s.id === step.id);
+        if (existingStep) {
+          await existingStep.update({
+            description: step.description,
+            index: step.index,
+          }, { transaction });
+        }
+      } else {
+        await Step.create({
+          description: step.description,
+          index: step.index,
+          taskId: task.id,
+        }, { transaction });
+      }
+    }
+
+    const updatedSteps = await Step.findAll({
+      where: { taskId: task.id },
+      transaction,
+    });
+
+    const updatedCount = Math.min(updatedSteps.length, 3);
+
+    // Aplicar pontuação pela diferença de quantidade
+    if (updatedCount > existingCount && updatedCount <= 3) {
+      points += (updatedCount - existingCount) * POINTS.TASK.STEP.CREATE;
+    } else if (updatedCount < existingCount && updatedCount < 3) {
+      points -= (existingCount - updatedCount) * POINTS.TASK.STEP.CREATE;
+    }
+
+    // Aplicar os pontos ao usuário
+    await applyUserPoints({ userId, points, transaction });
+
+    await transaction.commit();
+
+    console.log('[UPSERT STEPS] TaskId: ' + task.id + ', Points: ' + points);
+
+    res.status(201).json({
+      message: 'Steps updated successfully',
+      steps: updatedSteps,
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error(error.message);
+
+    res.status(500).json({
+      message: 'Updated Steps failed',
+      error: error.message,
+    });
+  }
+};

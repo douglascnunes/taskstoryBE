@@ -119,7 +119,7 @@ export const AVATAR = {
   ORANGE_MUSHROOM: ['orange_mushroom.png'],
   SLIME: ['slime.png'],
   PIG: ['pig.png'],
-}
+};
 
 
 export const POINTS = {
@@ -139,4 +139,11 @@ export const POINTS = {
       DONE: 1,
     },
   },
-}
+};
+
+
+export const DEPENDENCY = [
+  'TODAY',
+  'ACTIVITY',
+  'DESCRIPTION',
+];
