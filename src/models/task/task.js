@@ -53,7 +53,7 @@ Task.belongsTo(Activity, { allowNull: false });
 Task.hasMany(Step, { onDelete: 'CASCADE' });
 Step.belongsTo(Task, { allowNull: false });
 
-Task.hasMany(TaskInstance, { allowNull: false, onDelete: 'CASCADE' });
+Task.hasMany(TaskInstance, { as: 'instance', allowNull: false, onDelete: 'CASCADE' });
 TaskInstance.belongsTo(Task, { allowNull: false });
 
 User.hasMany(Task, { onDelete: 'CASCADE' });

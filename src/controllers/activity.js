@@ -16,6 +16,7 @@ import { getTaskPeriodFilter } from '../util/helpers/controller-task.js';
 import { applyUserPoints } from '../util/helpers/controller-user.js';
 import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
 import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
+import Dependency from '../models/activity/dependency.js';
 
 
 
@@ -116,7 +117,7 @@ export const getOverview = async (req, res, next) => {
       ];
     };
 
-    console.log('filter', filters)
+    // console.log('filter', filters)
 
     const activities = await Activity.findAll({
       where: {
@@ -132,6 +133,50 @@ export const getOverview = async (req, res, next) => {
           through: { attributes: [] },
         },
         {
+          association: "dependencies",
+          required: false,
+          through: {
+            attributes: ['dependencyInstanceId'],
+          },
+          include: [
+            {
+              model: Keyword,
+              required: true,
+              attributes: ['id', 'name', 'colorAngle'],
+              through: { attributes: [] },
+            },
+            {
+              model: Task,
+              required: false,
+              include: [
+                {
+                  model: TaskInstance,
+                  required: false,
+                  as: 'instance',
+                  where: {
+                    id: Sequelize.col('dependencies->dependency.dependencyInstanceId')
+                  }
+                },
+                { model: Step, required: false },
+              ]
+            },
+            // {
+            //   model: Habit,
+            //   required: false,
+            //   include: [
+            //     { model: HabitInstance, where: { status: 'ACTIVE' }, required: false }
+            //   ]
+            // },
+            // {
+            //   model: Goal,
+            //   required: false,
+            //   include: [
+            //     { model: GoalInstance, where: { status: 'ACTIVE' }, required: false }
+            //   ]
+            // }
+          ]
+        },
+        {
           model: Task,
           required: true,
           attributes: [
@@ -142,6 +187,7 @@ export const getOverview = async (req, res, next) => {
             { model: Step, required: false },
             {
               model: TaskInstance,
+              as: 'instance',
               required: false,
               where: {
                 finalDate: {
@@ -204,6 +250,7 @@ export const getActivity = async (req, res, next) => {
             ...(instance
               ? [{
                 model: TaskInstance,
+                as: 'instance',
                 required: false,
                 where: { id: instance },
               }]
@@ -331,11 +378,11 @@ export const updateActivity = async (req, res, next) => {
 
     await transaction.commit();
 
-    console.log('[UPDATE ACTIVITY] title: ' + updatedActivity.title + ', Points: ' + points);
+    console.log('[UPDATE ACTIVITY] title: ' + activity.title + ', Points: ' + points);
 
     res.status(201).json({
       message: 'Activity updated successfully!',
-      activity: updatedActivity,
+      activity: activity,
     });
   }
   catch (err) {
@@ -358,86 +405,56 @@ export const upsertDependencies = async (req, res, next) => {
 
   const { id } = req.params;
   const userId = req.userId;
-  const dependencies = req.body;
+  // [[dependencyId, dependencyInstanceId, dependentInstanceId, type, description], ...]
+  const rawDependencies = req.body;
 
   const transaction = await sequelize.transaction();
 
   try {
     let points = 0;
 
-    const task = await Task.findOne({
+    const activity = await Activity.findOne({
       where: { id, userId },
       transaction,
     });
 
-    if (!task) {
-      return res.status(404).json({ message: 'Related Task not found.' });
+    if (!activity) {
+      return res.status(404).json({ message: 'Related Activity not found.' });
     }
 
-    const existingSteps = await Step.findAll({
-      where: { taskId: task.id },
+    await Dependency.destroy({
+      where: { activityId: id },
       transaction,
     });
 
-    const existingCount = Math.min(existingSteps.length, 3);
-    const receivedIds = steps.filter(s => s.id).map(s => s.id);
-    const stepsToDelete = existingSteps.filter(s => !receivedIds.includes(s.id));
+    const records = rawDependencies.map(
+      ([dependencyId, dependencyInstanceId, dependentInstanceId, type, description]) => ({
+        activityId: id,
+        dependencyId,
+        dependencyInstanceId,
+        dependentInstanceId,
+        type,
+        description: description || null,
+      })
+    );
 
-    // Deletar steps removidos
-    for (const step of stepsToDelete) {
-      await step.destroy({ transaction });
-    }
-
-    // Atualizar ou criar steps
-    for (const step of steps) {
-      if (step.id) {
-        const existingStep = existingSteps.find(s => s.id === step.id);
-        if (existingStep) {
-          await existingStep.update({
-            description: step.description,
-            index: step.index,
-          }, { transaction });
-        }
-      } else {
-        await Step.create({
-          description: step.description,
-          index: step.index,
-          taskId: task.id,
-        }, { transaction });
-      }
-    }
-
-    const updatedSteps = await Step.findAll({
-      where: { taskId: task.id },
-      transaction,
-    });
-
-    const updatedCount = Math.min(updatedSteps.length, 3);
-
-    // Aplicar pontuação pela diferença de quantidade
-    if (updatedCount > existingCount && updatedCount <= 3) {
-      points += (updatedCount - existingCount) * POINTS.TASK.STEP.CREATE;
-    } else if (updatedCount < existingCount && updatedCount < 3) {
-      points -= (existingCount - updatedCount) * POINTS.TASK.STEP.CREATE;
-    }
-
-    // Aplicar os pontos ao usuário
-    await applyUserPoints({ userId, points, transaction });
+    if (records.length > 0) {
+      await Dependency.bulkCreate(records, { transaction });
+    };
 
     await transaction.commit();
 
-    console.log('[UPSERT STEPS] TaskId: ' + task.id + ', Points: ' + points);
+    console.log('[UPSERT DEPENDENCIES] Activity: ' + activity.id);
 
     res.status(201).json({
-      message: 'Steps updated successfully',
-      steps: updatedSteps,
+      message: 'Dependencies updated successfully',
     });
   } catch (error) {
     await transaction.rollback();
     console.error(error.message);
 
     res.status(500).json({
-      message: 'Updated Steps failed',
+      message: 'Updated Dependencies failed',
       error: error.message,
     });
   }

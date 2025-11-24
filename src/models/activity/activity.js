@@ -55,7 +55,7 @@ Activity.hasMany(ActivityStatusHistory, { onDelete: 'CASCADE' });
 ActivityStatusHistory.belongsTo(Activity);
 
 Activity.belongsToMany(Activity, {
-  as: 'Dependents',
+  as: 'dependents',
   through: Dependency,
   foreignKey: 'dependencyId',
   otherKey: 'activityId',
@@ -63,7 +63,7 @@ Activity.belongsToMany(Activity, {
 });
 
 Activity.belongsToMany(Activity, {
-  as: 'Dependencies',
+  as: 'dependencies',
   through: Dependency,
   foreignKey: 'activityId',
   otherKey: 'dependencyId',

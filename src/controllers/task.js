@@ -12,6 +12,7 @@ import { buildTaskUpdateData, calculateStepCompletionPoints, isSettingPeriodOrFr
 import TaskInstance from '../models/task/taskInstance.js';
 import { applyUserPoints } from '../util/helpers/controller-user.js';
 import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
+import { Sequelize } from 'sequelize';
 
 
 
@@ -78,6 +79,50 @@ export const getTaskInstance = async (req, res, next) => {
           through: { attributes: [] },
         },
         {
+          association: "dependencies",
+          required: false,
+          through: {
+            attributes: ['dependencyInstanceId', 'type', 'description'],
+          },
+          include: [
+            {
+              model: Keyword,
+              required: true,
+              attributes: ['id', 'name', 'colorAngle'],
+              through: { attributes: [] },
+            },
+            {
+              model: Task,
+              required: false,
+              include: [
+                {
+                  model: TaskInstance,
+                  required: false,
+                  as: 'instance',
+                  where: {
+                    id: Sequelize.col('dependencies->dependency.dependencyInstanceId')
+                  }
+                },
+                { model: Step, required: false },
+              ]
+            },
+            // {
+            //   model: Habit,
+            //   required: false,
+            //   include: [
+            //     { model: HabitInstance, where: { status: 'ACTIVE' }, required: false }
+            //   ]
+            // },
+            // {
+            //   model: Goal,
+            //   required: false,
+            //   include: [
+            //     { model: GoalInstance, where: { status: 'ACTIVE' }, required: false }
+            //   ]
+            // }
+          ]
+        },
+        {
           model: Task,
           required: true,
           attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
@@ -90,6 +135,7 @@ export const getTaskInstance = async (req, res, next) => {
             ...(instanceid
               ? [{
                 model: TaskInstance,
+                as: 'instance',
                 required: false,
                 where: { id: instanceid },
               }]
@@ -98,6 +144,7 @@ export const getTaskInstance = async (req, res, next) => {
         },
       ],
     });
+
     console.log('[GET TASK + INSTANCE] Task title: ' + activity.title + '  InstanceId: ' + instanceid);
     res.status(200).json({
       message: 'Fetched Activities successfully.',
@@ -136,6 +183,7 @@ export const createTask = async (req, res, next) => {
     steps,
   } = req.body;
 
+  console.log(keywords)
   const transaction = await sequelize.transaction();
 
   try {

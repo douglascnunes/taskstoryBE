@@ -6,17 +6,22 @@ const Dependency = sequelize.define('dependency', {
   id: {
     type: Sequelize.INTEGER,
     autoIncrement: true,
+    primaryKey: true,
     allowNull: false,
-    primaryKey: true
   },
-  // activityId: {
-  //   type: Sequelize.INTEGER,
-  // },
-  // dependencyId: {
-  //   type: Sequelize.INTEGER,
-  //   allowNull: true,
-  // },
-  instanceId: {
+  activityId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  dependencyId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  dependentInstanceId: {
+    type: Sequelize.INTEGER,
+    allowNull: false,
+  },
+  dependencyInstanceId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
