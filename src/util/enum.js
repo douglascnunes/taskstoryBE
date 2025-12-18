@@ -122,25 +122,6 @@ export const AVATAR = {
 };
 
 
-export const POINTS = {
-  ACTIVITY: {
-    CREATE: 1,
-    // UPDATE: 1,
-    DONE: 1,
-    DESCRIPTION: 1,
-    KEYWORD: 1,
-  },
-  TASK: {
-    CREATE: 1,
-    DONE: 1,
-    PERIOD_AND_FREQUENCY: 1,
-    STEP: {
-      CREATE: 1,
-      DONE: 1,
-    },
-  },
-};
-
 
 export const DEPENDENCY = [
   'TODAY',

@@ -9,15 +9,11 @@ const Dependency = sequelize.define('dependency', {
     primaryKey: true,
     allowNull: false,
   },
-  activityId: {
+  instanceId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },
   dependencyId: {
-    type: Sequelize.INTEGER,
-    allowNull: false,
-  },
-  dependentInstanceId: {
     type: Sequelize.INTEGER,
     allowNull: false,
   },

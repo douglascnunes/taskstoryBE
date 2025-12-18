@@ -11,7 +11,9 @@ export const getUser = async (req, res, next) => {
   try {
     const user = await User.findOne({
       where: { id: req.userId },
-      attributes: ['name', 'email', 'avatar', 'currentLevelPoints', 'procrastinationType'],
+      attributes: [
+        'name', 'email', 'avatar', 'currentLevelPoints', 'selfRegulationPoints', 'selfEfficacynPoints', 'procrastinationType'
+      ],
       include: [
         {
           model: UserLevel,

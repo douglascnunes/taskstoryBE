@@ -3,7 +3,8 @@ import { validationResult as expValidatorRes } from 'express-validator';
 
 import sequelize from '../util/db.js';
 import { controllerErrorObj } from '../util/error.js';
-import { ACTIVITY_TYPE, POINTS, PRIORITY_VALUES } from '../util/enum.js';
+import { ACTIVITY_TYPE, PRIORITY_VALUES } from '../util/enum.js';
+import { POINTS } from '../util/points.js';
 
 import Activity from '../models/activity/activity.js';
 import AreaOfLife from '../models/areaOfLife/areaOfLife.js';
@@ -13,7 +14,7 @@ import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
 import TaskInstance from '../models/task/taskInstance.js';
 import { getTaskPeriodFilter } from '../util/helpers/controller-task.js';
-import { applyUserPoints } from '../util/helpers/controller-user.js';
+import { awardsPoints } from '../util/helpers/controller-user.js';
 import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
 import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
 import Dependency from '../models/activity/dependency.js';
@@ -286,7 +287,7 @@ export const createActivity = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     const newActivity = await Activity.create({
       title: rest.title,
@@ -297,8 +298,9 @@ export const createActivity = async (req, res, next) => {
       userId: req.userId
     }, { transaction });
 
-    points += POINTS.ACTIVITY.CREATE;
-    if (rest.description) points += POINTS.ACTIVITY.DESCRIPTION;
+    awardsActions.push([POINTS.ACTIVITY.CREATE, 1]);
+
+    if (rest.description) awardsActions.push([POINTS.ACTIVITY.DESCRIPTION, 1]);
 
     const { oldKeywords, newKeywords } = await updateActivityKeywords({
       activity: newActivity,
@@ -307,18 +309,18 @@ export const createActivity = async (req, res, next) => {
       transaction
     });
 
-    points += calculateKeywordPoints({
-      oldKeywords,
-      newKeywords,
-      pointValue: POINTS.ACTIVITY.KEYWORD,
-      maxCount: 3
-    });
+    awardsActions.push([POINTS.KEYWORD.CREATE, Math.min(newKeywords.length, 3)]);
 
-    await applyUserPoints({ userId: req.userId, points, transaction });
+    const resultPoints = await awardsPoints(req.userId, awardsActions, transaction);
 
     await transaction.commit();
 
-    console.log('[CREATE ACTIVITY] title:' + newActivity.title + ', Points:' + points);
+    console.log(
+      '[CREATE ACTIVITY] title:' + newActivity.title +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Activity created successfully!',
@@ -343,7 +345,7 @@ export const updateActivity = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     const activity = await Activity.findOne({
       where: { id: activityId, userId: req.userId, },
@@ -354,7 +356,7 @@ export const updateActivity = async (req, res, next) => {
     };
 
     // ATUALIZAÇÃO DOS ATRIBUTOS DA ATIVIDADE
-    if (rest.description && !activity.description) points += POINTS.ACTIVITY.DESCRIPTION;
+    if (rest.description && !activity.description) awardsActions.push([POINTS.ACTIVITY.DESCRIPTION, 1]);
     const activityUpdateData = buildActivityUpdateData(rest, req.userId);
     Object.assign(activity, activityUpdateData);
     await activity.save({ transaction });
@@ -367,18 +369,21 @@ export const updateActivity = async (req, res, next) => {
       transaction
     });
 
-    points += calculateKeywordPoints({
-      oldKeywords,
-      newKeywords,
-      pointValue: POINTS.ACTIVITY.KEYWORD,
-      maxCount: 3
-    });
+    awardsActions.push([
+      POINTS.ACTIVITY.KEYWORD,
+      Math.max(-2, Math.min(2, oldKeywords.length - newKeywords.length))
+    ]);
 
-    await applyUserPoints({ userId: req.userId, points, transaction, });
+    await awardsPoints(req.userId, awardsActions, transaction);
 
     await transaction.commit();
 
-    console.log('[UPDATE ACTIVITY] title: ' + activity.title + ', Points: ' + points);
+    console.log(
+      '[CREATE ACTIVITY] title:' + activity.title +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Activity updated successfully!',

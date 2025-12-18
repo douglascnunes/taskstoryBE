@@ -197,6 +197,7 @@ router.post('/tasks/:id/steps', isAuth,
 );
 
 
+
 router.post('/tasks/:id/instance', isAuth,
   [
     param('id')
@@ -302,6 +303,21 @@ router.patch('/tasks/:taskid/instance/:instanceid', isAuth,
     }),
   ], taskController.updateInstance
 );
+
+
+
+router.post('/task/:instanceid/dependencies', isAuth,
+  [
+    param('instanceid')
+      .notEmpty().withMessage('Activity ID (param) is required.')
+      .isInt().withMessage('Activity ID must be an integer.'),
+    body('dependencies')
+      .optional()
+      .isArray().withMessage('Dependencies must be an array.'),
+  ],
+  taskController.upsertDependencies
+);
+
 
 
 export default router;

@@ -6,11 +6,12 @@ import Activity from '../models/activity/activity.js';
 import Keyword from '../models/areaOfLife/keyword.js';
 import Task from '../models/task/task.js';
 import Step from '../models/task/step.js';
-import { STATUS, ACTIVITY_TYPE, POINTS, INSTANCE_STATUS } from '../util/enum.js';
+import { STATUS, ACTIVITY_TYPE, INSTANCE_STATUS } from '../util/enum.js';
+import { POINTS } from '../util/points.js';
 import { buildActivityUpdateData } from '../util/helpers/controller-activity.js';
-import { buildTaskUpdateData, calculateStepCompletionPoints, isSettingPeriodOrFrequencyForFirstTime, sanitizeStepCompletionStatus } from '../util/helpers/controller-task.js';
+import { buildTaskUpdateData, calculateStepCompletionDiff, isSettingPeriodOrFrequencyForFirstTime, sanitizeStepCompletionStatus } from '../util/helpers/controller-task.js';
 import TaskInstance from '../models/task/taskInstance.js';
-import { applyUserPoints } from '../util/helpers/controller-user.js';
+import { awardsPoints } from '../util/helpers/controller-user.js';
 import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
 import { Sequelize } from 'sequelize';
 
@@ -103,7 +104,7 @@ export const getTaskInstance = async (req, res, next) => {
                     id: Sequelize.col('dependencies->dependency.dependencyInstanceId')
                   }
                 },
-                { model: Step, required: false },
+                // { model: Step, required: false },
               ]
             },
             // {
@@ -163,7 +164,6 @@ export const getTaskInstance = async (req, res, next) => {
 
 
 export const createTask = async (req, res, next) => {
-  console.log(req.body)
   const errors = expValidatorRes(req);
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
@@ -183,11 +183,12 @@ export const createTask = async (req, res, next) => {
     steps,
   } = req.body;
 
-  console.log(keywords)
+  console.log(req.body)
+
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     // 1. Criar atividade
     const activity = await Activity.create({
@@ -201,8 +202,8 @@ export const createTask = async (req, res, next) => {
       userId: req.userId
     }, { transaction });
 
-    points += POINTS.ACTIVITY.CREATE;
-    if (description) points += POINTS.ACTIVITY.DESCRIPTION;
+    awardsActions.push([POINTS.ACTIVITY.CREATE, 1]);
+    if (description) awardsActions.push([POINTS.ACTIVITY.DESCRIPTION, 1]);
 
     // 2. Atualizar keywords e pontuar
     const { oldKeywords, newKeywords } = await updateActivityKeywords({
@@ -212,12 +213,7 @@ export const createTask = async (req, res, next) => {
       transaction
     });
 
-    points += calculateKeywordPoints({
-      oldKeywords,
-      newKeywords,
-      pointValue: POINTS.ACTIVITY.KEYWORD,
-      maxCount: 3
-    });
+    awardsActions.push([POINTS.ACTIVITY.KEYWORD, Math.min(newKeywords.length, 3)]);
 
     // 3. Criar task vinculada
     const hasPeriodOrFrequency = startPeriod || endPeriod || frequenceIntervalDays || (frequenceWeeklyDays?.length > 0);
@@ -230,8 +226,9 @@ export const createTask = async (req, res, next) => {
       userId: req.userId
     }, { transaction });
 
-    points += POINTS.TASK.CREATE;
-    if (hasPeriodOrFrequency) points += POINTS.TASK.PERIOD_AND_FREQUENCY;
+    awardsActions.push([POINTS.TASK.CREATE, 1]);
+
+    if (hasPeriodOrFrequency) awardsActions.push([POINTS.TASK.PERIOD_AND_FREQUENCY, 1]);
 
     // 4. Criar steps, se houver
     if (steps && steps.length > 0) {
@@ -242,16 +239,21 @@ export const createTask = async (req, res, next) => {
         );
         await newTask.addStep(newStep, { transaction });
       }
-      points += steps.length * POINTS.TASK.STEP.CREATE;
+      awardsActions.push([POINTS.TASK.STEP.CREATE, steps.length]);
     }
 
     // 5. Aplicar pontos
-    await applyUserPoints({ userId: req.userId, points, transaction });
+    const resultPoints = await awardsPoints(req.userId, awardsActions, transaction);
 
     // 6. Commit e resposta
     await transaction.commit();
 
-    console.log(`[CREATE TASK] Title: "${activity.title}", Points: ${points}`);
+    console.log(
+      '[CREATE TASK] title:' + activity.title +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Task created successfully',
@@ -283,23 +285,19 @@ export const updateTask = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
-    // Buscar atividade e validar
     const activity = await Activity.findOne({ where: { id, userId }, transaction });
     if (!activity) {
       return res.status(404).json({ message: `Activity with ID ${id} not found.` });
     }
 
-    // Atualização da atividade
-    if (rest.description && !activity.description) {
-      points += POINTS.ACTIVITY.DESCRIPTION;
-    }
+    if (rest.description && !activity.description) awardsActions.push([POINTS.ACTIVITY.DESCRIPTION, 1]);
+    if (!rest.description && activity.description) awardsActions.push([POINTS.ACTIVITY.DESCRIPTION, -1]);
 
     Object.assign(activity, buildActivityUpdateData(rest, userId));
     await activity.save({ transaction });
 
-    // Atualização de palavras-chave
     if (keywords) {
       const { oldKeywords, newKeywords } = await updateActivityKeywords({
         activity,
@@ -308,33 +306,34 @@ export const updateTask = async (req, res, next) => {
         transaction
       });
 
-      points += calculateKeywordPoints({
-        oldKeywords,
-        newKeywords,
-        pointValue: POINTS.ACTIVITY.KEYWORD,
-        maxCount: 3
-      });
+      awardsActions.push([
+        POINTS.KEYWORD.CREATE,
+        Math.max(-2, Math.min(2, oldKeywords.length - newKeywords.length))
+      ]);
     }
 
-
-    // Buscar tarefa vinculada
-    const task = await Task.findOne({ where: { id: activity.id, userId } });
+    const task = await Task.findOne({ where: { id: activity.id, userId }, transaction });
     if (!task) {
       return res.status(404).json({ message: `Related Task not found for activity ID ${id}.` });
     }
 
-    if (isSettingPeriodOrFrequencyForFirstTime(task, rest)) {
-      points += POINTS.TASK.PERIOD_AND_FREQUENCY;
-    }
+    if (isSettingPeriodOrFrequencyForFirstTime(task, rest)) awardsActions.push([POINTS.TASK.PERIOD_AND_FREQUENCY, 1]);
 
-    // Atualizar tarefa
+
     Object.assign(task, buildTaskUpdateData(rest));
+
     await task.save({ transaction });
 
-    await applyUserPoints({ userId, points, transaction });
+    const resultPoints = await awardsPoints(userId, awardsActions, transaction);
+
     await transaction.commit();
 
-    console.log(`[UPDATE TASK] Title: "${activity.title}", Points: ${points}`);
+    console.log(
+      '[UPDATE TASK] title:' + activity.title +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(200).json({
       message: 'Task updated successfully',
@@ -365,7 +364,7 @@ export const upsertSteps = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     const task = await Task.findOne({
       where: { id, userId },
@@ -381,7 +380,6 @@ export const upsertSteps = async (req, res, next) => {
       transaction,
     });
 
-    const existingCount = Math.min(existingSteps.length, 3);
     const receivedIds = steps.filter(s => s.id).map(s => s.id);
     const stepsToDelete = existingSteps.filter(s => !receivedIds.includes(s.id));
 
@@ -414,21 +412,22 @@ export const upsertSteps = async (req, res, next) => {
       transaction,
     });
 
-    const updatedCount = Math.min(updatedSteps.length, 3);
-
-    // Aplicar pontuação pela diferença de quantidade
-    if (updatedCount > existingCount && updatedCount <= 3) {
-      points += (updatedCount - existingCount) * POINTS.TASK.STEP.CREATE;
-    } else if (updatedCount < existingCount && updatedCount < 3) {
-      points -= (existingCount - updatedCount) * POINTS.TASK.STEP.CREATE;
-    }
+    awardsActions.push([
+      POINTS.TASK.STEP.CREATE,
+      Math.max(-2, Math.min(2, updatedSteps.length - existingSteps.length))
+    ]);
 
     // Aplicar os pontos ao usuário
-    await applyUserPoints({ userId, points, transaction });
+    const resultPoints = await awardsPoints(userId, awardsActions, transaction);
 
     await transaction.commit();
 
-    console.log('[UPSERT STEPS] TaskId: ' + task.id + ', Points: ' + points);
+    console.log(
+      '[UPSERT STEPS] id:' + task.id +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Steps updated successfully',
@@ -460,7 +459,7 @@ export const createInstance = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     const task = await Task.findOne({ where: { id: id, userId } });
 
@@ -468,8 +467,8 @@ export const createInstance = async (req, res, next) => {
 
     const sanitizedStepStatus = await sanitizeStepCompletionStatus(stepCompletionStatus ?? [], transaction);
 
-    const stepPoints = calculateStepCompletionPoints([], sanitizedStepStatus);
-    points += stepPoints;
+    const stepCompletionDiff = calculateStepCompletionDiff([], sanitizedStepStatus);
+    awardsActions.push([POINTS.TASK.STEP.DONE, stepCompletionDiff]);
 
     const instance = await TaskInstance.create({
       finalDate,
@@ -481,19 +480,25 @@ export const createInstance = async (req, res, next) => {
     },
       { transaction }
     );
-    if (completedOn) points += POINTS.TASK.DONE;
+    if (completedOn) awardsActions.push([POINTS.TASK.DONE, 1]);
 
     if (instance.status === INSTANCE_STATUS[2]) { // DELETED
       task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
-      if (completedOn) points -= POINTS.TASK.DONE;
+      awardsActions.push([POINTS.TASK.STEP.DONE, sanitizedStepStatus.length * -1]);
+      if (completedOn) awardsActions.push([POINTS.TASK.DONE, -1]);
       await task.save({ transaction });
     };
 
-    await applyUserPoints({ userId, points, transaction });
+    const resultPoints = await awardsPoints(userId, awardsActions, transaction);
 
     await transaction.commit();
 
-    console.log('[CREATE TASK INSTANCE] finalDate: ' + new Date(instance.finalDate).toDateString() + ', Points: ' + points);
+    console.log(
+      '[CREATE TASK INSTANCE] finalDate: ' + new Date(instance.finalDate).toDateString() +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',
@@ -517,7 +522,6 @@ export const updateInstance = async (req, res, next) => {
   if (!errors.isEmpty()) {
     return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
   }
-
   const { taskid, instanceid } = req.params;
   const userId = req.userId;
   const { completedOn, status, stepCompletionStatus } = req.body;
@@ -525,7 +529,7 @@ export const updateInstance = async (req, res, next) => {
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
+    let awardsActions = [];
 
     const task = await Task.findOne({ where: { id: taskid, userId } });
     if (!task) return res.status(404).json({ message: 'Related Task not found.' });
@@ -535,32 +539,45 @@ export const updateInstance = async (req, res, next) => {
 
     const oldStepStatus = instance.stepCompletionStatus || [];
     const sanitizedStepStatus = await sanitizeStepCompletionStatus(stepCompletionStatus ?? oldStepStatus, transaction);
-    const stepPoints = calculateStepCompletionPoints(oldStepStatus, sanitizedStepStatus);
-    points += stepPoints;
+    const stepCompletionDiff = calculateStepCompletionDiff(oldStepStatus, sanitizedStepStatus);
+    awardsActions.push([POINTS.TASK.STEP.DONE, stepCompletionDiff]);
 
     const wasCompleted = !!instance.completedOn;
     const isNowCompleted = !!completedOn;
-    if (!wasCompleted && isNowCompleted) points += POINTS.TASK.DONE;
-    if (wasCompleted && !isNowCompleted) points -= POINTS.TASK.DONE;
+
+    const wasLate = instance.completedOn && new Date(instance.completedOn) > new Date(instance.finalDate);
+    const isLateNow = completedOn && new Date(completedOn) > new Date(instance.finalDate);
+
+    if (!wasCompleted && isNowCompleted) {
+      awardsActions.push([isLateNow ? POINTS.TASK.DONE_LATE : POINTS.TASK.DONE, 1]);
+    }
+
+    if (wasCompleted && !isNowCompleted) {
+      awardsActions.push([wasLate ? POINTS.TASK.DONE_LATE : POINTS.TASK.DONE, -1]);
+    }
 
     instance.completedOn = completedOn ?? null;
     instance.status = status ?? instance.status;
     instance.stepCompletionStatus = sanitizedStepStatus.length > 0 ? sanitizedStepStatus : [];
 
-    if (instance.status === STATUS[3]) {
-      if (instance.completedOn) points -= POINTS.TASK.DONE;
-      points -= instance.stepCompletionStatus.length * POINTS.TASK.STEP.DONE;
+    if (instance.status === STATUS[3]) { // DELETED
+      if (completedOn) awardsActions.push([wasLate ? POINTS.TASK.DONE_LATE : POINTS.TASK.DONE, -1]);
+      awardsActions.push([POINTS.TASK.STEP.DONE, instance.stepCompletionStatus.length * -1]);
       task.deletedInstances = [...(task.deletedInstances || []), instance.finalDate];
       await task.save({ transaction });
     };
 
-    await instance.save({ transaction });
+    const resultPoints = await awardsPoints(userId, awardsActions, transaction);
 
-    await applyUserPoints({ userId, points, transaction });
+    await instance.save({ transaction })
 
     await transaction.commit();
 
-    console.log('[UPDATE TASK INSTANCE] FinalDate: ', new Date(instance.finalDate).toDateString(), 'Points:', points);
+    console.log('[UPDATE TASK INSTANCE] FinalDate: ', new Date(instance.finalDate).toDateString() +
+      ', Level Points:' + resultPoints.diffLevelPoints +
+      ', Self-Reg Points:' + resultPoints.diffSelfRegPoints +
+      ', Self-Eff Points:' + resultPoints.diffSelfEffPoints
+    );
 
     res.status(201).json({
       message: 'Create TaskInstance successfully',
@@ -572,6 +589,69 @@ export const updateInstance = async (req, res, next) => {
 
     res.status(500).json({
       message: 'Create TaskInstance failed',
+      error: error.message,
+    });
+  }
+};
+
+
+
+export const upsertDependencies = async (req, res, next) => {
+  const errors = expValidatorRes(req);
+  if (!errors.isEmpty()) {
+    return next(errorHelper.controllerErrorObj('Validation failed, entered data is incorrect.', 422, errors));
+  }
+
+  const { instanceid } = req.params;
+  const userId = req.userId;
+
+  const rawDependencies = req.body;
+
+  const transaction = await sequelize.transaction();
+
+  try {
+    const activity = await Activity.findOne({
+      where: { id, userId },
+      transaction,
+    });
+
+    if (!activity) {
+      return res.status(404).json({ message: 'Related Activity not found.' });
+    }
+
+    await Dependency.destroy({
+      where: { activityId: id },
+      transaction,
+    });
+
+    const records = rawDependencies.map(
+      ([dependencyId, dependencyInstanceId, dependentInstanceId, type, description]) => ({
+        activityId: id,
+        dependencyId,
+        dependencyInstanceId,
+        dependentInstanceId,
+        type,
+        description: description || null,
+      })
+    );
+
+    if (records.length > 0) {
+      await Dependency.bulkCreate(records, { transaction });
+    };
+
+    await transaction.commit();
+
+    console.log('[UPSERT DEPENDENCIES] Activity: ' + activity.id);
+
+    res.status(201).json({
+      message: 'Dependencies updated successfully',
+    });
+  } catch (error) {
+    await transaction.rollback();
+    console.error(error.message);
+
+    res.status(500).json({
+      message: 'Updated Dependencies failed',
       error: error.message,
     });
   }

@@ -1,7 +1,6 @@
 import { Op } from 'sequelize';
 import Step from '../../models/task/step.js';
-import { POINTS } from '../../util/enum.js';
-
+import { POINTS } from '../points.js';
 
 
 export function getTaskPeriodFilter(startdate, finaldate) {
@@ -42,7 +41,6 @@ export function buildTaskUpdateData(data) {
   const updateData = {};
 
   for (const field of fields) updateData[field] = data[field] ?? null;
-  console.log('updateData', updateData)
   return updateData;
 }
 
@@ -79,7 +77,7 @@ export async function sanitizeStepCompletionStatus(stepCompletionStatus = [], tr
 };
 
 
-export function calculateStepCompletionPoints(oldStepIds = [], newStepIds = []) {
+export function calculateStepCompletionDiff(oldStepIds = [], newStepIds = []) {
   const oldSet = new Set(oldStepIds);
   const newSet = new Set(newStepIds);
 
@@ -94,5 +92,5 @@ export function calculateStepCompletionPoints(oldStepIds = [], newStepIds = []) 
     if (!newSet.has(id)) removed++;
   }
 
-  return (added - removed) * POINTS.TASK.STEP.DONE;
+  return (added - removed);
 };
