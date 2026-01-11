@@ -12,8 +12,8 @@ import { buildActivityUpdateData } from '../util/helpers/controller-activity.js'
 import { buildTaskUpdateData, calculateStepCompletionDiff, isSettingPeriodOrFrequencyForFirstTime, sanitizeStepCompletionStatus } from '../util/helpers/controller-task.js';
 import TaskInstance from '../models/task/taskInstance.js';
 import { awardsPoints } from '../util/helpers/controller-user.js';
-import { calculateKeywordPoints, updateActivityKeywords } from '../util/helpers/controller-keyword.js';
-import { Sequelize } from 'sequelize';
+import { updateActivityKeywords } from '../util/helpers/controller-keyword.js';
+import { Op, Sequelize } from 'sequelize';
 
 
 
@@ -74,6 +74,26 @@ export const getTaskInstance = async (req, res, next) => {
       },
       include: [
         {
+          model: Task,
+          required: true,
+          attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
+          include: [
+            {
+              model: Step,
+              required: false,
+              attributes: ['id', 'description', 'index'],
+            },
+            ...(instanceid
+              ? [{
+                model: TaskInstance,
+                as: 'instance',
+                required: false,
+                where: { id: instanceid },
+              }]
+              : [])
+          ],
+        },
+        {
           model: Keyword,
           required: true,
           attributes: ['id', 'name', 'colorAngle'],
@@ -83,7 +103,7 @@ export const getTaskInstance = async (req, res, next) => {
           association: "dependencies",
           required: false,
           through: {
-            attributes: ['dependencyInstanceId', 'type', 'description'],
+            attributes: ['instanceId','depInstanceId', 'type', 'description'],
           },
           include: [
             {
@@ -101,7 +121,9 @@ export const getTaskInstance = async (req, res, next) => {
                   required: false,
                   as: 'instance',
                   where: {
-                    id: Sequelize.col('dependencies->dependency.dependencyInstanceId')
+                    id: {
+                      [Op.col]: 'dependencies.dependency.depInstanceId'
+                    }
                   }
                 },
                 // { model: Step, required: false },
@@ -121,27 +143,36 @@ export const getTaskInstance = async (req, res, next) => {
             //     { model: GoalInstance, where: { status: 'ACTIVE' }, required: false }
             //   ]
             // }
-          ]
-        },
-        {
-          model: Task,
-          required: true,
-          attributes: ['id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays'],
-          include: [
             {
-              model: Step,
+              association: "dependencies",
               required: false,
-              attributes: ['id', 'description', 'index'],
+              // through: {
+              //   attributes: ['depInstanceId', 'type', 'description'],
+              // },
+              // include: [
+              //   {
+              //     model: Keyword,
+              //     required: true,
+              //     attributes: ['id', 'name', 'colorAngle'],
+              //     through: { attributes: [] },
+              //   },
+              //   {
+              //     model: Task,
+              //     required: false,
+              //     include: [
+              //       {
+              //         model: TaskInstance,
+              //         required: false,
+              //         as: 'instance',
+              //         where: {
+              //           id: Sequelize.col('dependencies->dependency.depInstanceId')
+              //         }
+              //       },
+              //     ]
+              //   },
+              // ]
             },
-            ...(instanceid
-              ? [{
-                model: TaskInstance,
-                as: 'instance',
-                required: false,
-                where: { id: instanceid },
-              }]
-              : [])
-          ],
+          ]
         },
       ],
     });

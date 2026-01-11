@@ -56,18 +56,28 @@ ActivityStatusHistory.belongsTo(Activity);
 
 Activity.belongsToMany(Activity, {
   as: 'dependents',
-  through: Dependency,
-  foreignKey: 'dependencyId',
+  through: {
+    model: Dependency,
+    unique: false,
+    // scope: {
+    //   type: 'ACTIVITY'
+    // }
+  },
+  foreignKey: 'depActivityId',
   otherKey: 'activityId',
-  allowNull: true,
 });
 
 Activity.belongsToMany(Activity, {
   as: 'dependencies',
-  through: Dependency,
+  through: {
+    model: Dependency,
+    unique: false,
+    // scope: {
+    //   type: 'ACTIVITY'
+    // }
+  },
   foreignKey: 'activityId',
-  otherKey: 'dependencyId',
-  allowNull: true,
+  otherKey: 'depActivityId',
 });
 
 Activity.belongsToMany(Keyword, { through: ActivityKeyword });

@@ -38,8 +38,6 @@ export const getOverview = async (req, res, next) => {
     // Start and End Overview limits
     let startdateDate = decodedStartDate ? new Date(decodeURIComponent(decodedStartDate)) : null;
     let finaldateDate = decodedFinalDate ? new Date(decodeURIComponent(decodedFinalDate)) : null;
-    console.log('startdate', startdateDate)
-    console.log('finaldateDate', finaldateDate)
 
     if (!startdateDate) {
       startdateDate = new Date();
@@ -134,10 +132,33 @@ export const getOverview = async (req, res, next) => {
           through: { attributes: [] },
         },
         {
+          model: Task,
+          required: true,
+          attributes: [
+            'id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'deletedInstances'
+          ],
+          where: getTaskPeriodFilter(startdateDate, finaldateDate),
+          include: [
+            { model: Step, required: false },
+            {
+              model: TaskInstance,
+              as: 'instance',
+              required: false,
+              where: {
+                finalDate: {
+                  [Op.between]: [startdateDate, finaldateDate],
+                },
+                status: 'ACTIVE',
+              },
+            },
+          ]
+        },
+        {
           association: "dependencies",
           required: false,
+          // attributes: ['id', 'type', 'description'],
           through: {
-            attributes: ['dependencyInstanceId'],
+            attributes: ['instanceId', 'depInstanceId', 'type', 'description'],
           },
           include: [
             {
@@ -155,7 +176,9 @@ export const getOverview = async (req, res, next) => {
                   required: false,
                   as: 'instance',
                   where: {
-                    id: Sequelize.col('dependencies->dependency.dependencyInstanceId')
+                    id: {
+                      [Op.col]: 'dependencies.dependency.depInstanceId'
+                    }
                   }
                 },
                 { model: Step, required: false },
@@ -175,27 +198,37 @@ export const getOverview = async (req, res, next) => {
             //     { model: GoalInstance, where: { status: 'ACTIVE' }, required: false }
             //   ]
             // }
-          ]
-        },
-        {
-          model: Task,
-          required: true,
-          attributes: [
-            'id', 'startPeriod', 'endPeriod', 'frequenceIntervalDays', 'frequenceWeeklyDays', 'deletedInstances'
-          ],
-          where: getTaskPeriodFilter(startdateDate, finaldateDate),
-          include: [
-            { model: Step, required: false },
             {
-              model: TaskInstance,
-              as: 'instance',
+              association: "dependencies",
               required: false,
-              where: {
-                finalDate: {
-                  [Op.between]: [startdateDate, finaldateDate],
-                },
-                status: 'ACTIVE',
+              through: {
+                attributes: ['instanceId', 'depInstanceId', 'type', 'description'],
               },
+              include: [
+                {
+                  model: Keyword,
+                  required: true,
+                  attributes: ['id', 'name', 'colorAngle'],
+                  through: { attributes: [] },
+                },
+                {
+                  model: Task,
+                  required: false,
+                  include: [
+                    {
+                      model: TaskInstance,
+                      required: false,
+                      as: 'instance',
+                      // where: {
+                      //   id: {
+                      //     [Op.col]: 'dependencies.dependency.depInstanceId'
+                      //   }
+                      // }
+                    },
+                    { model: Step, required: false },
+                  ]
+                },
+              ]
             },
           ]
         },
@@ -410,14 +443,12 @@ export const upsertDependencies = async (req, res, next) => {
 
   const { id } = req.params;
   const userId = req.userId;
-  // [[dependencyId, dependencyInstanceId, dependentInstanceId, type, description], ...]
+  // [[depActivityId, depInstanceId, instanceId, type, description], ...]
   const rawDependencies = req.body;
-
+  console.log(rawDependencies)
   const transaction = await sequelize.transaction();
 
   try {
-    let points = 0;
-
     const activity = await Activity.findOne({
       where: { id, userId },
       transaction,
@@ -433,11 +464,11 @@ export const upsertDependencies = async (req, res, next) => {
     });
 
     const records = rawDependencies.map(
-      ([dependencyId, dependencyInstanceId, dependentInstanceId, type, description]) => ({
+      ([depActivityId, depInstanceId, instanceId, type, description]) => ({
         activityId: id,
-        dependencyId,
-        dependencyInstanceId,
-        dependentInstanceId,
+        depActivityId,
+        depInstanceId,
+        instanceId,
         type,
         description: description || null,
       })
